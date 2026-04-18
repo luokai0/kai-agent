@@ -24,6 +24,14 @@ import { EmbeddingEngine } from '../memory/embedding.js';
 import { cosineSimilarity } from '../memory/vector.js';
 import { SelfImprovementEngine } from '../self-improvement/SelfImprovementEngine.js';
 import { SelfLearningTrainer } from '../self-improvement/SelfLearningTrainer.js';
+import { 
+  ConversationEngine, 
+  ConversationMode, 
+  ConversationStyle, 
+  EmotionalTone,
+  ConversationSession,
+  ConversationMessage
+} from '../conversation/ConversationEngine.js';
 
 const VERSION = '1.0.0';
 const EMBEDDING_DIM = 768;
@@ -50,6 +58,9 @@ export class KaiAgentImpl implements KaiAgent {
   // Self-improvement components
   private selfImprovement: SelfImprovementEngine;
   private trainer: SelfLearningTrainer;
+  
+  // Conversation engine
+  private conversation: ConversationEngine;
 
   constructor(name: string = 'Kai') {
     this.id = uuidv4();
@@ -107,6 +118,9 @@ export class KaiAgentImpl implements KaiAgent {
       undefined,
       `${process.cwd()}/data/training`
     );
+    
+    // Initialize conversation engine
+    this.conversation = new ConversationEngine(this.memory, this.brain as any);
   }
 
   private initializeBrain(): NeuralBrain {
@@ -671,6 +685,162 @@ export class KaiAgentImpl implements KaiAgent {
    */
   getTrainingStatus(): ReturnType<SelfLearningTrainer['getStatus']> {
     return this.trainer.getStatus();
+  }
+
+  // -------------------------------------------------------------------------
+  // CONVERSATION METHODS
+  // -------------------------------------------------------------------------
+
+  /**
+   * Start a conversation session
+   */
+  async startConversation(options?: {
+    mode?: ConversationMode;
+    style?: ConversationStyle;
+    tone?: EmotionalTone;
+  }): Promise<ConversationSession> {
+    return await this.conversation.startSession(options);
+  }
+
+  /**
+   * Chat with the agent
+   */
+  async chat(message: string, options?: {
+    mode?: ConversationMode;
+    tone?: EmotionalTone;
+  }): Promise<string> {
+    return await this.conversation.chat(message, options);
+  }
+
+  /**
+   * Chat specifically about coding
+   */
+  async codeChat(message: string): Promise<string> {
+    return await this.conversation.codeChat(message);
+  }
+
+  /**
+   * Chat specifically about security
+   */
+  async securityChat(message: string): Promise<string> {
+    return await this.conversation.securityChat(message);
+  }
+
+  /**
+   * Chat for debugging help
+   */
+  async debugChat(message: string): Promise<string> {
+    return await this.conversation.debugChat(message);
+  }
+
+  /**
+   * Chat for learning/education
+   */
+  async learnChat(message: string): Promise<string> {
+    return await this.conversation.learnChat(message);
+  }
+
+  /**
+   * Chat for creative discussions
+   */
+  async creativeChat(message: string): Promise<string> {
+    return await this.conversation.creativeChat(message);
+  }
+
+  /**
+   * Chat for debate/argumentation
+   */
+  async debateChat(message: string): Promise<string> {
+    return await this.conversation.debateChat(message);
+  }
+
+  /**
+   * Chat for coaching/advice
+   */
+  async coachingChat(message: string): Promise<string> {
+    return await this.conversation.coachingChat(message);
+  }
+
+  /**
+   * Chat for storytelling
+   */
+  async storyChat(message: string): Promise<string> {
+    return await this.conversation.storyChat(message);
+  }
+
+  /**
+   * Switch conversation mode
+   */
+  async switchMode(mode: ConversationMode): Promise<void> {
+    await this.conversation.switchMode(mode);
+  }
+
+  /**
+   * Set conversation tone
+   */
+  setTone(tone: EmotionalTone): void {
+    this.conversation.setTone(tone);
+  }
+
+  /**
+   * Set conversation style
+   */
+  setStyle(style: ConversationStyle): void {
+    this.conversation.setStyle(style);
+  }
+
+  /**
+   * Get current conversation session
+   */
+  getCurrentConversation(): ConversationSession | null {
+    return this.conversation.getSession();
+  }
+
+  /**
+   * End current conversation
+   */
+  async endConversation(): Promise<void> {
+    await this.conversation.endSession();
+  }
+
+  /**
+   * Get all conversation sessions
+   */
+  getAllConversations(): ConversationSession[] {
+    return this.conversation.getAllSessions();
+  }
+
+  /**
+   * Get conversation statistics
+   */
+  getConversationStats(): { totalSessions: number; totalMessages: number; averageSessionLength: number } {
+    const stats = this.conversation.getStats();
+    return {
+      totalSessions: stats.totalSessions,
+      totalMessages: stats.totalMessages,
+      averageSessionLength: stats.averageSessionLength
+    };
+  }
+
+  /**
+   * Available conversation modes
+   */
+  getConversationModes(): string[] {
+    return Object.values(ConversationMode);
+  }
+
+  /**
+   * Available emotional tones
+   */
+  getEmotionalTones(): string[] {
+    return Object.values(EmotionalTone);
+  }
+
+  /**
+   * Available conversation styles
+   */
+  getConversationStyles(): string[] {
+    return Object.values(ConversationStyle);
   }
 }
 
