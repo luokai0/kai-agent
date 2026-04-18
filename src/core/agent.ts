@@ -201,8 +201,18 @@ export class KaiAgentImpl implements KaiAgent {
       const inputEmbedding = this.embeddingEngine.embed(input);
       this.state.context = inputEmbedding;
       
-      // Step 2: Query knowledge base
-      const relevantKnowledge = this.knowledgeBase.query(input, 5);
+      // Step 1.5: Detect domain and query with domain preference
+      const detectedDomains = this.detectDomains(input);
+      
+      // Step 2: Query knowledge base with domain preference
+      let relevantKnowledge = detectedDomains.length > 0 
+        ? this.knowledgeBase.query(input, 10, detectedDomains)
+        : this.knowledgeBase.query(input, 5);
+      
+      // If no results with domain filter, try without
+      if (relevantKnowledge.length === 0) {
+        relevantKnowledge = this.knowledgeBase.query(input, 10);
+      }
       
       // Step 3: Query memory
       const relevantMemories = this.memory.query(input, 5);
@@ -325,6 +335,36 @@ export class KaiAgentImpl implements KaiAgent {
   private isSecurityRelated(input: string): boolean {
     const securityKeywords = ['security', 'vulnerability', 'attack', 'exploit', 'hack', 'secure', 'encrypt', 'password', 'injection', 'xss', 'csrf'];
     return securityKeywords.some(kw => input.toLowerCase().includes(kw));
+  }
+
+  // Detect domains from input for better knowledge matching
+  private detectDomains(input: string): import('../types/index.js').KnowledgeDomain[] {
+    const domains: import('../types/index.js').KnowledgeDomain[] = [];
+    const lower = input.toLowerCase();
+    
+    // Security-related keywords
+    const securityKeywords = [
+      'sql injection', 'xss', 'csrf', 'vulnerability', 'exploit', 'hack', 
+      'security', 'attack', 'encrypt', 'decrypt', 'password', 'hash',
+      'penetration', 'malware', 'ransomware', 'firewall', 'cipher'
+    ];
+    
+    if (securityKeywords.some(kw => lower.includes(kw))) {
+      domains.push('vulnerabilities', 'cybersecurity', 'defenses', 'tools', 'exploits');
+    }
+    
+    // Coding keywords
+    const codingKeywords = [
+      'code', 'function', 'class', 'method', 'algorithm', 'variable',
+      'python', 'javascript', 'typescript', 'java', 'rust', 'go',
+      'debug', 'error', 'exception', 'implement', 'refactor'
+    ];
+    
+    if (codingKeywords.some(kw => lower.includes(kw))) {
+      domains.push('patterns', 'algorithms', 'data_structures', 'languages', 'coding');
+    }
+    
+    return domains;
   }
 
   private synthesizeCodeResponse(
