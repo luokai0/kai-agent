@@ -1,0 +1,25 @@
+import type { DistanceMetric } from '../types/index.js';
+export declare function dot(a: Float64Array, b: Float64Array): number;
+export declare function magnitude(v: Float64Array): number;
+export declare function normalize(v: Float64Array): Float64Array;
+export declare function scale(v: Float64Array, s: number): Float64Array;
+export declare function add(a: Float64Array, b: Float64Array): Float64Array;
+export declare function subtract(a: Float64Array, b: Float64Array): Float64Array;
+export declare function hadamard(a: Float64Array, b: Float64Array): Float64Array;
+export declare function euclideanDistance(a: Float64Array, b: Float64Array): number;
+export declare function cosineDistance(a: Float64Array, b: Float64Array): number;
+export declare function manhattanDistance(a: Float64Array, b: Float64Array): number;
+export declare function hammingDistance(a: Float64Array, b: Float64Array): number;
+export declare function jaccardDistance(a: Float64Array, b: Float64Array): number;
+export declare function computeDistance(a: Float64Array, b: Float64Array, metric: DistanceMetric): number;
+export declare function cosineSimilarity(a: Float64Array, b: Float64Array): number;
+export declare function softMax(values: Float64Array): Float64Array;
+export declare function randomVector(dimensions: number, scale?: number): Float64Array;
+export declare function zeroVector(dimensions: number): Float64Array;
+export declare function onesVector(dimensions: number): Float64Array;
+export declare function concat(...vectors: Float64Array[]): Float64Array;
+export declare function slice(v: Float64Array, start: number, end: number): Float64Array;
+export declare function mean(vectors: Float64Array[]): Float64Array;
+export declare function variance(vectors: Float64Array[]): Float64Array;
+export declare function standardDeviation(vectors: Float64Array[]): Float64Array;
+//# sourceMappingURL=vector.d.ts.map

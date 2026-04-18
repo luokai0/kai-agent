@@ -1,0 +1,41 @@
+import type { Cell, CellType, CellMembrane, CellState, CellConnection, ConnectionType, CellSpecialization, EnergySystem, ProteinSynthesizer } from '../types/index.js';
+import { NeuronImpl } from '../neural/neuron.js';
+export declare class CellImpl implements Cell {
+    id: string;
+    type: CellType;
+    nucleus: NeuronImpl[];
+    dendrites: Float64Array[];
+    axonTerminal: Float64Array;
+    membrane: CellMembrane;
+    mitochondria: EnergySystem;
+    ribosomes: ProteinSynthesizer;
+    state: CellState;
+    connections: CellConnection[];
+    specialization: CellSpecialization;
+    private embeddingEngine;
+    private spikeHistory;
+    constructor(type: CellType, nucleusSize?: number);
+    private initializeSpecialization;
+    receiveInput(input: Float64Array, channel?: number): void;
+    private calculateInputStrength;
+    process(): Float64Array;
+    private aggregateDendrites;
+    fire(): void;
+    regenerate(): void;
+    connectTo(targetId: string, type?: ConnectionType, initialStrength?: number): CellConnection;
+    strengthenConnections(): void;
+    processSpecialized(input: string): string;
+    private processCoding;
+    private processSecurity;
+    private processReasoning;
+    private processLanguage;
+    private processMathematical;
+    private processCreative;
+    private generateCombinations;
+    private processExecutive;
+    private processGeneric;
+    train(input: Float64Array, target: Float64Array, learningRate?: number): number;
+    serialize(): Cell;
+    static deserialize(data: Cell): CellImpl;
+}
+//# sourceMappingURL=cell.d.ts.map

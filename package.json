@@ -1,0 +1,43 @@
+{
+  "name": "kai-agent",
+  "version": "1.0.0",
+  "description": "Neural AI Brain with Memory, Tree of Thoughts, and Cell Architecture",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "kai": "./dist/cli/start.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "npx tsx src/cli/start.ts",
+    "dev": "npx tsx src/cli/start.ts",
+    "train": "npx tsx src/training/train.ts",
+    "ingest": "npx tsx src/ingestion/ingest.ts",
+    "test": "node --test dist/**/*.test.js",
+    "cli": "npx tsx src/cli/start.ts"
+  },
+  "keywords": [
+    "neural-network",
+    "ai",
+    "agent",
+    "memory",
+    "tree-of-thoughts",
+    "cybersecurity",
+    "coding"
+  ],
+  "dependencies": {
+    "better-sqlite3": "^11.0.0",
+    "chalk": "^5.3.0",
+    "uuid": "^10.0.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.11",
+    "@types/node": "^22.0.0",
+    "@types/uuid": "^10.0.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.6.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
