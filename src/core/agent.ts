@@ -22,6 +22,8 @@ import { KnowledgeBase } from '../knowledge/base.js';
 import { HuggingFaceIngestor } from '../knowledge/huggingface.js';
 import { EmbeddingEngine } from '../memory/embedding.js';
 import { cosineSimilarity } from '../memory/vector.js';
+import { SelfImprovementEngine } from '../self-improvement/SelfImprovementEngine.js';
+import { SelfLearningTrainer } from '../self-improvement/SelfLearningTrainer.js';
 
 const VERSION = '1.0.0';
 const EMBEDDING_DIM = 768;
@@ -44,6 +46,10 @@ export class KaiAgentImpl implements KaiAgent {
   private actionHistory: AgentAction[];
   private initialized: boolean;
   private knowledgeBase: KnowledgeBase;
+  
+  // Self-improvement components
+  private selfImprovement: SelfImprovementEngine;
+  private trainer: SelfLearningTrainer;
 
   constructor(name: string = 'Kai') {
     this.id = uuidv4();
@@ -87,6 +93,20 @@ export class KaiAgentImpl implements KaiAgent {
     
     // Action history
     this.actionHistory = [];
+    
+    // Initialize self-improvement engine
+    this.selfImprovement = new SelfImprovementEngine(
+      process.cwd(),
+      `${process.cwd()}/data/self-improvement`
+    );
+    
+    // Initialize trainer (will connect to neural engine after initialization)
+    this.trainer = new SelfLearningTrainer(
+      this.selfImprovement,
+      undefined,
+      undefined,
+      `${process.cwd()}/data/training`
+    );
   }
 
   private initializeBrain(): NeuralBrain {
@@ -548,6 +568,109 @@ export class KaiAgentImpl implements KaiAgent {
       created: this.created,
       lastActive: this.lastActive
     };
+  }
+
+  // -------------------------------------------------------------------------
+  // SELF-IMPROVEMENT METHODS
+  // -------------------------------------------------------------------------
+
+  /**
+   * Run a self-improvement cycle
+   */
+  async improve(): Promise<{
+    weaknessesFound: number;
+    proposalsGenerated: number;
+    proposalsApproved: number;
+    modificationsApplied: number;
+    improvements: string[];
+  }> {
+    return await this.selfImprovement.runCycle();
+  }
+
+  /**
+   * Start continuous self-improvement
+   */
+  startSelfImprovement(intervalMs: number = 60 * 60 * 1000): void {
+    this.selfImprovement.startContinuous(intervalMs);
+  }
+
+  /**
+   * Stop continuous self-improvement
+   */
+  stopSelfImprovement(): void {
+    this.selfImprovement.stopContinuous();
+  }
+
+  /**
+   * Get self-improvement status
+   */
+  getImprovementStatus(): ReturnType<SelfImprovementEngine['getStatus']> {
+    return this.selfImprovement.getStatus();
+  }
+
+  /**
+   * Generate self-improvement report
+   */
+  generateImprovementReport(): string {
+    return this.selfImprovement.generateReport();
+  }
+
+  /**
+   * Start a training session
+   */
+  async train(durationMs: number = 60 * 60 * 1000): Promise<ReturnType<SelfLearningTrainer['startSession']>> {
+    return await this.trainer.startSession(durationMs);
+  }
+
+  /**
+   * Practice a specific task
+   */
+  async practice(category?: string, difficulty?: number): Promise<ReturnType<SelfLearningTrainer['practice']>> {
+    return await this.trainer.practice(category, difficulty);
+  }
+
+  /**
+   * Validate current performance
+   */
+  async validate(count: number = 10): Promise<ReturnType<SelfLearningTrainer['validate']>> {
+    return await this.trainer.validate(count);
+  }
+
+  /**
+   * Record performance metric for self-improvement
+   */
+  recordPerformance(metric: {
+    category: 'reasoning' | 'coding' | 'security' | 'memory' | 'learning' | 'interaction';
+    success: boolean;
+    duration: number;
+    complexity: number;
+    outcome: string;
+    context?: Record<string, any>;
+    errors?: string[];
+    suggestions?: string[];
+  }): string {
+    return this.selfImprovement.recordPerformance(metric);
+  }
+
+  /**
+   * Record learning experience
+   */
+  recordExperience(experience: {
+    input: string;
+    expectedOutput: string;
+    actualOutput: string;
+    category: string;
+    correct: boolean;
+    feedback?: string;
+  }): string {
+    return this.selfImprovement.recordExperience(experience);
+  }
+
+  /**
+   * Get trainer status
+   */
+  getTrainingStatus(): ReturnType<SelfLearningTrainer['getStatus']> {
+    return this.trainer.getStatus();
   }
 }
 

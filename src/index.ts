@@ -19,6 +19,19 @@ export { CellImpl } from './cells/cell.js';
 export { CellNetworkImpl } from './cells/network.js';
 export { KnowledgeBase } from './knowledge/base.js';
 export { HuggingFaceIngestor, CODING_DATASETS, SECURITY_DATASETS, ALGORITHM_DATASETS } from './knowledge/huggingface.js';
+// Self-Improvement Module
+export { 
+  SelfImprovementEngine,
+  PerformanceTracker,
+  WeaknessAnalyzer,
+  ImprovementProposer,
+  SelfModifier,
+  LearningEngine
+} from './self-improvement/SelfImprovementEngine.js';
+export { 
+  SelfLearningTrainer,
+  TrainingDataManager
+} from './self-improvement/SelfLearningTrainer.js';
 export * from './types/index.js';
 export * from './utils/index.js';
 

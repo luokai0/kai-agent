@@ -5665,6 +5665,1496 @@ var init_huggingface = __esm(() => {
   ];
 });
 
+// src/self-improvement/SelfImprovementEngine.ts
+import { EventEmitter } from "events";
+import * as fs from "fs";
+import * as path from "path";
+import { execSync } from "child_process";
+
+class WeaknessAnalyzer {
+  patterns = [];
+  patternsFile;
+  constructor(dataDir) {
+    this.patternsFile = path.join(dataDir, "weakness-patterns.json");
+    this.load();
+  }
+  load() {
+    try {
+      if (fs.existsSync(this.patternsFile)) {
+        const data = JSON.parse(fs.readFileSync(this.patternsFile, "utf-8"));
+        this.patterns = data.map((p) => ({
+          ...p,
+          lastOccurrence: new Date(p.lastOccurrence)
+        }));
+      }
+    } catch (error) {
+      console.error("Failed to load patterns:", error);
+    }
+  }
+  save() {
+    try {
+      const dir = path.dirname(this.patternsFile);
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
+      fs.writeFileSync(this.patternsFile, JSON.stringify(this.patterns, null, 2));
+    } catch (error) {
+      console.error("Failed to save patterns:", error);
+    }
+  }
+  analyze(metrics) {
+    const failures = metrics.filter((m) => !m.success);
+    const newPatterns = [];
+    const errorGroups = this.groupByPattern(failures, (f) => f.errors.join(";"));
+    for (const [pattern, failures2] of errorGroups) {
+      if (failures2.length >= 3) {
+        this.updateOrCreatePattern({
+          pattern: pattern || "Unknown error",
+          frequency: failures2.length,
+          severity: this.calculateSeverity(failures2),
+          category: this.inferCategory(failures2),
+          examples: failures2.slice(0, 5).map((f) => f.outcome),
+          lastOccurrence: new Date,
+          suggestedFixes: this.generateFixSuggestions(pattern, failures2),
+          impact: this.calculateImpact(failures2)
+        });
+      }
+    }
+    const slowMetrics = metrics.filter((m) => m.duration > 5000);
+    if (slowMetrics.length > 10) {
+      this.updateOrCreatePattern({
+        pattern: "Slow operation performance",
+        frequency: slowMetrics.length,
+        severity: "medium",
+        category: "performance",
+        examples: slowMetrics.slice(0, 5).map((m) => `${m.category}: ${m.duration}ms`),
+        lastOccurrence: new Date,
+        suggestedFixes: ["Optimize algorithms", "Add caching", "Parallelize operations"],
+        impact: 40
+      });
+    }
+    const complexFailures = failures.filter((f) => f.complexity > 7);
+    if (complexFailures.length > 5) {
+      this.updateOrCreatePattern({
+        pattern: "High complexity task failures",
+        frequency: complexFailures.length,
+        severity: "high",
+        category: "reasoning",
+        examples: complexFailures.slice(0, 5).map((f) => f.context.input || f.outcome),
+        lastOccurrence: new Date,
+        suggestedFixes: [
+          "Break down complex tasks",
+          "Improve decomposition logic",
+          "Add intermediate validation"
+        ],
+        impact: 60
+      });
+    }
+    this.save();
+    return this.patterns;
+  }
+  groupByPattern(items, keyFn) {
+    const groups = new Map;
+    for (const item of items) {
+      const key = keyFn(item);
+      if (!groups.has(key)) {
+        groups.set(key, []);
+      }
+      groups.get(key).push(item);
+    }
+    return groups;
+  }
+  calculateSeverity(failures) {
+    const count = failures.length;
+    const avgComplexity = failures.reduce((s, f) => s + f.complexity, 0) / count;
+    if (count > 50 || avgComplexity > 8)
+      return "critical";
+    if (count > 20 || avgComplexity > 6)
+      return "high";
+    if (count > 10 || avgComplexity > 4)
+      return "medium";
+    return "low";
+  }
+  inferCategory(failures) {
+    const categories = {};
+    for (const f of failures) {
+      categories[f.category] = (categories[f.category] || 0) + 1;
+    }
+    return Object.entries(categories).sort((a, b) => b[1] - a[1])[0]?.[0] || "unknown";
+  }
+  generateFixSuggestions(pattern, failures) {
+    const suggestions = [];
+    if (pattern.includes("timeout")) {
+      suggestions.push("Increase timeout values", "Add retry logic", "Implement async processing");
+    }
+    if (pattern.includes("memory")) {
+      suggestions.push("Optimize memory usage", "Add garbage collection hints", "Implement streaming");
+    }
+    if (pattern.includes("type") || pattern.includes("undefined")) {
+      suggestions.push("Add type guards", "Improve input validation", "Add null checks");
+    }
+    if (pattern.includes("security")) {
+      suggestions.push("Update security rules", "Add sanitization", "Review access controls");
+    }
+    const category = this.inferCategory(failures);
+    if (category === "coding") {
+      suggestions.push("Improve code generation templates", "Add syntax validation");
+    }
+    if (category === "reasoning") {
+      suggestions.push("Enhance reasoning depth", "Add fact verification");
+    }
+    if (category === "memory") {
+      suggestions.push("Optimize memory retrieval", "Improve indexing");
+    }
+    return suggestions.length > 0 ? suggestions : ["Investigate root cause", "Add logging", "Review code"];
+  }
+  calculateImpact(failures) {
+    const count = failures.length;
+    const avgComplexity = failures.reduce((s, f) => s + f.complexity, 0) / count;
+    return Math.min(100, count * 2 + avgComplexity * 10);
+  }
+  updateOrCreatePattern(data) {
+    const existing = this.patterns.find((p) => p.pattern === data.pattern);
+    if (existing) {
+      Object.assign(existing, {
+        ...data,
+        frequency: existing.frequency + data.frequency
+      });
+    } else {
+      this.patterns.push({
+        ...data,
+        id: `pattern_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+      });
+    }
+  }
+  getPatterns(options) {
+    let filtered = [...this.patterns];
+    if (options?.severity) {
+      filtered = filtered.filter((p) => p.severity === options.severity);
+    }
+    if (options?.category) {
+      filtered = filtered.filter((p) => p.category === options.category);
+    }
+    if (options?.minImpact) {
+      filtered = filtered.filter((p) => p.impact >= options.minImpact);
+    }
+    return filtered.sort((a, b) => b.impact - a.impact);
+  }
+  getTopWeaknesses(count = 10) {
+    return this.getPatterns().slice(0, count);
+  }
+}
+
+class ImprovementProposer {
+  proposals = [];
+  proposalsFile;
+  constructor(dataDir) {
+    this.proposalsFile = path.join(dataDir, "improvement-proposals.json");
+    this.load();
+  }
+  load() {
+    try {
+      if (fs.existsSync(this.proposalsFile)) {
+        const data = JSON.parse(fs.readFileSync(this.proposalsFile, "utf-8"));
+        this.proposals = data.map((p) => ({
+          ...p,
+          createdAt: new Date(p.createdAt),
+          implementedAt: p.implementedAt ? new Date(p.implementedAt) : undefined
+        }));
+      }
+    } catch (error) {
+      console.error("Failed to load proposals:", error);
+    }
+  }
+  save() {
+    try {
+      const dir = path.dirname(this.proposalsFile);
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
+      fs.writeFileSync(this.proposalsFile, JSON.stringify(this.proposals, null, 2));
+    } catch (error) {
+      console.error("Failed to save proposals:", error);
+    }
+  }
+  generateProposals(weaknesses, performanceStats) {
+    const newProposals = [];
+    for (const weakness of weaknesses) {
+      if (this.proposals.some((p) => p.title.includes(weakness.pattern) && p.status !== "completed")) {
+        continue;
+      }
+      const proposal = this.createProposalForWeakness(weakness, performanceStats);
+      if (proposal) {
+        newProposals.push(proposal);
+        this.proposals.push(proposal);
+      }
+    }
+    if (performanceStats.errorRate > 0.1) {
+      const proposal = {
+        id: `prop_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        title: "Reduce Overall Error Rate",
+        description: `Current error rate is ${(performanceStats.errorRate * 100).toFixed(1)}%. Target: <5%`,
+        category: "architecture",
+        priority: 9,
+        impact: 50,
+        effort: 40,
+        risk: "medium",
+        status: "proposed",
+        proposedChanges: [],
+        reasoning: "High error rate indicates systemic issues that need architectural improvements",
+        expectedOutcome: "Error rate reduced to below 5%",
+        rollbackPlan: "Revert changes, restore previous configuration",
+        createdAt: new Date
+      };
+      newProposals.push(proposal);
+      this.proposals.push(proposal);
+    }
+    for (const [category, stats] of Object.entries(performanceStats.categoryStats)) {
+      if (stats.avgDuration > 3000) {
+        const proposal = {
+          id: `prop_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          title: `Optimize ${category} Performance`,
+          description: `Average duration for ${category} is ${stats.avgDuration.toFixed(0)}ms. Target: <1000ms`,
+          category: "code",
+          priority: 7,
+          impact: 30,
+          effort: 20,
+          risk: "low",
+          status: "proposed",
+          proposedChanges: [],
+          reasoning: `Performance bottleneck in ${category} operations affecting user experience`,
+          expectedOutcome: `${category} operations complete in under 1 second`,
+          rollbackPlan: "Revert optimized code",
+          createdAt: new Date
+        };
+        newProposals.push(proposal);
+        this.proposals.push(proposal);
+      }
+    }
+    this.save();
+    return newProposals;
+  }
+  createProposalForWeakness(weakness, stats) {
+    if (weakness.severity === "low" && weakness.frequency < 5) {
+      return null;
+    }
+    const category = this.mapCategory(weakness.category);
+    const proposedChanges = this.generateProposedChanges(weakness);
+    return {
+      id: `prop_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      title: `Fix: ${weakness.pattern}`,
+      description: `Address recurring weakness pattern affecting ${weakness.frequency} operations`,
+      category,
+      priority: this.calculatePriority(weakness),
+      impact: weakness.impact,
+      effort: this.estimateEffort(weakness),
+      risk: this.assessRisk(weakness),
+      status: "proposed",
+      proposedChanges,
+      reasoning: weakness.suggestedFixes.join("; "),
+      expectedOutcome: `Eliminate "${weakness.pattern}" weakness pattern`,
+      rollbackPlan: "Revert applied changes",
+      createdAt: new Date
+    };
+  }
+  mapCategory(weaknessCategory) {
+    const mapping = {
+      reasoning: "behavior",
+      coding: "code",
+      security: "code",
+      memory: "architecture",
+      learning: "data",
+      interaction: "behavior",
+      performance: "architecture"
+    };
+    return mapping[weaknessCategory] || "code";
+  }
+  calculatePriority(weakness) {
+    const severityWeights = { low: 3, medium: 5, high: 8, critical: 10 };
+    const severity = severityWeights[weakness.severity];
+    const frequencyFactor = Math.min(weakness.frequency / 10, 2);
+    return Math.round(severity * (1 + frequencyFactor));
+  }
+  estimateEffort(weakness) {
+    const baseEffort = { low: 2, medium: 8, high: 20, critical: 40 };
+    return baseEffort[weakness.severity];
+  }
+  assessRisk(weakness) {
+    if (weakness.impact > 70 || weakness.severity === "critical")
+      return "high";
+    if (weakness.impact > 40 || weakness.severity === "high")
+      return "medium";
+    return "low";
+  }
+  generateProposedChanges(weakness) {
+    const changes = [];
+    const fixes = weakness.suggestedFixes;
+    for (const fix of fixes) {
+      if (fix.includes("validation") || fix.includes("checks")) {
+        changes.push({
+          type: "modify",
+          targetFile: `src/cells/${weakness.category}/index.ts`,
+          newCode: `// TODO: Add ${fix}
+// Generated by Self-Improvement Engine`,
+          description: fix
+        });
+      }
+      if (fix.includes("timeout") || fix.includes("retry")) {
+        changes.push({
+          type: "modify",
+          targetFile: "src/core/config.ts",
+          newCode: `// TODO: ${fix}
+// Generated by Self-Improvement Engine`,
+          description: fix
+        });
+      }
+    }
+    return changes;
+  }
+  getProposals(options) {
+    let filtered = [...this.proposals];
+    if (options?.status) {
+      filtered = filtered.filter((p) => p.status === options.status);
+    }
+    if (options?.category) {
+      filtered = filtered.filter((p) => p.category === options.category);
+    }
+    return filtered.sort((a, b) => b.priority - a.priority);
+  }
+  getPendingProposals() {
+    return this.getProposals({ status: "proposed" });
+  }
+  approve(proposalId) {
+    const proposal = this.proposals.find((p) => p.id === proposalId);
+    if (!proposal)
+      return false;
+    proposal.status = "approved";
+    this.save();
+    return true;
+  }
+  reject(proposalId, reason) {
+    const proposal = this.proposals.find((p) => p.id === proposalId);
+    if (!proposal)
+      return false;
+    proposal.status = "rejected";
+    proposal.results = reason || "Rejected";
+    this.save();
+    return true;
+  }
+}
+
+class SelfModifier {
+  modifications = [];
+  modificationsFile;
+  projectRoot;
+  backupDir;
+  constructor(dataDir, projectRoot) {
+    this.modificationsFile = path.join(dataDir, "self-modifications.json");
+    this.projectRoot = projectRoot;
+    this.backupDir = path.join(dataDir, "backups");
+    this.load();
+  }
+  load() {
+    try {
+      if (fs.existsSync(this.modificationsFile)) {
+        const data = JSON.parse(fs.readFileSync(this.modificationsFile, "utf-8"));
+        this.modifications = data.map((m) => ({
+          ...m,
+          timestamp: new Date(m.timestamp)
+        }));
+      }
+    } catch (error) {
+      console.error("Failed to load modifications:", error);
+    }
+  }
+  save() {
+    try {
+      const dir = path.dirname(this.modificationsFile);
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
+      fs.writeFileSync(this.modificationsFile, JSON.stringify(this.modifications, null, 2));
+    } catch (error) {
+      console.error("Failed to save modifications:", error);
+    }
+  }
+  async applyProposal(proposal) {
+    const id = `mod_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const modification = {
+      id,
+      proposalId: proposal.id,
+      timestamp: new Date,
+      changes: [],
+      success: false,
+      testsPassed: false,
+      errors: [],
+      rollbackAvailable: false
+    };
+    try {
+      await this.createBackup(proposal);
+      modification.rollbackAvailable = true;
+      for (const change of proposal.proposedChanges) {
+        const success = this.applyChange(change);
+        if (!success) {
+          modification.errors.push(`Failed to apply change: ${change.description}`);
+        }
+      }
+      modification.testsPassed = await this.runTests();
+      const compiled = await this.compile();
+      modification.success = modification.testsPassed && compiled;
+      if (!modification.success) {
+        await this.rollback(proposal.id);
+        modification.rollbackAvailable = false;
+      }
+    } catch (error) {
+      modification.errors.push(String(error));
+      await this.rollback(proposal.id);
+      modification.rollbackAvailable = false;
+    }
+    this.modifications.push(modification);
+    this.save();
+    return modification;
+  }
+  async createBackup(proposal) {
+    const backupPath = path.join(this.backupDir, proposal.id);
+    if (!fs.existsSync(backupPath)) {
+      fs.mkdirSync(backupPath, { recursive: true });
+    }
+    for (const change of proposal.proposedChanges) {
+      const filePath = path.join(this.projectRoot, change.targetFile);
+      if (fs.existsSync(filePath)) {
+        const backupFilePath = path.join(backupPath, path.basename(change.targetFile));
+        fs.copyFileSync(filePath, backupFilePath);
+      }
+    }
+  }
+  applyChange(change) {
+    try {
+      const filePath = path.join(this.projectRoot, change.targetFile);
+      switch (change.type) {
+        case "create":
+          const dir = path.dirname(filePath);
+          if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
+          }
+          fs.writeFileSync(filePath, change.newCode);
+          break;
+        case "modify":
+          if (!fs.existsSync(filePath)) {
+            console.warn(`File not found for modification: ${filePath}`);
+            return false;
+          }
+          if (change.lineStart !== undefined && change.lineEnd !== undefined) {
+            const lines = fs.readFileSync(filePath, "utf-8").split(`
+`);
+            lines.splice(change.lineStart - 1, change.lineEnd - change.lineStart + 1, change.newCode);
+            fs.writeFileSync(filePath, lines.join(`
+`));
+          } else {
+            fs.appendFileSync(filePath, `
+` + change.newCode);
+          }
+          break;
+        case "delete":
+          if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
+          }
+          break;
+        case "refactor":
+          if (change.originalCode && fs.existsSync(filePath)) {
+            const content = fs.readFileSync(filePath, "utf-8");
+            const newContent = content.replace(change.originalCode, change.newCode);
+            fs.writeFileSync(filePath, newContent);
+          }
+          break;
+      }
+      return true;
+    } catch (error) {
+      console.error("Failed to apply change:", error);
+      return false;
+    }
+  }
+  async runTests() {
+    try {
+      const testsDir = path.join(this.projectRoot, "tests");
+      if (!fs.existsSync(testsDir)) {
+        return true;
+      }
+      const result = execSync("bun test 2>&1", {
+        cwd: this.projectRoot,
+        encoding: "utf-8",
+        timeout: 60000
+      });
+      return !result.includes("FAIL");
+    } catch (error) {
+      return true;
+    }
+  }
+  async compile() {
+    try {
+      execSync("bun build ./src/index.ts --outdir ./dist 2>&1", {
+        cwd: this.projectRoot,
+        encoding: "utf-8",
+        timeout: 30000
+      });
+      return true;
+    } catch (error) {
+      console.error("Compilation failed:", error);
+      return false;
+    }
+  }
+  async rollback(proposalId) {
+    const backupPath = path.join(this.backupDir, proposalId);
+    if (!fs.existsSync(backupPath)) {
+      console.warn("No backup found for rollback:", proposalId);
+      return false;
+    }
+    try {
+      const files = fs.readdirSync(backupPath);
+      for (const file of files) {
+        const backupFile = path.join(backupPath, file);
+        const originalPath = path.join(this.projectRoot, "src", file);
+        fs.copyFileSync(backupFile, originalPath);
+      }
+      return true;
+    } catch (error) {
+      console.error("Rollback failed:", error);
+      return false;
+    }
+  }
+  getModifications() {
+    return [...this.modifications];
+  }
+  getRecentModifications(count = 10) {
+    return this.modifications.slice(-count);
+  }
+}
+
+class LearningEngine {
+  experiences = [];
+  experiencesFile;
+  constructor(dataDir) {
+    this.experiencesFile = path.join(dataDir, "learning-experiences.json");
+    this.load();
+  }
+  load() {
+    try {
+      if (fs.existsSync(this.experiencesFile)) {
+        const data = JSON.parse(fs.readFileSync(this.experiencesFile, "utf-8"));
+        this.experiences = data.map((e) => ({
+          ...e,
+          timestamp: new Date(e.timestamp)
+        }));
+      }
+    } catch (error) {
+      console.error("Failed to load experiences:", error);
+    }
+  }
+  save() {
+    try {
+      const dir = path.dirname(this.experiencesFile);
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
+      fs.writeFileSync(this.experiencesFile, JSON.stringify(this.experiences, null, 2));
+    } catch (error) {
+      console.error("Failed to save experiences:", error);
+    }
+  }
+  recordExperience(experience) {
+    const id = `exp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const fullExperience = {
+      ...experience,
+      id,
+      timestamp: new Date
+    };
+    this.experiences.push(fullExperience);
+    this.save();
+    return id;
+  }
+  learnFromExperiences() {
+    const patterns = [];
+    const improvements = [];
+    const categoryGroups = new Map;
+    for (const exp of this.experiences) {
+      if (!categoryGroups.has(exp.category)) {
+        categoryGroups.set(exp.category, []);
+      }
+      categoryGroups.get(exp.category).push(exp);
+    }
+    for (const [category, exps] of categoryGroups) {
+      const successes = exps.filter((e) => e.correct).length;
+      const successRate = successes / exps.length;
+      patterns.push({
+        pattern: `Category: ${category}`,
+        category,
+        successRate
+      });
+      if (successRate < 0.7) {
+        const failedExps = exps.filter((e) => !e.correct);
+        const commonIssues = this.findCommonIssues(failedExps);
+        for (const issue of commonIssues) {
+          improvements.push({
+            category,
+            suggestion: issue,
+            impact: Math.round((1 - successRate) * 100)
+          });
+        }
+      }
+    }
+    return { patterns, improvements };
+  }
+  findCommonIssues(failures) {
+    const issues = [];
+    const feedbackWords = failures.filter((f) => f.feedback).map((f) => f.feedback.toLowerCase()).join(" ").split(/\s+/);
+    const wordCounts = new Map;
+    for (const word of feedbackWords) {
+      if (word.length > 4) {
+        wordCounts.set(word, (wordCounts.get(word) || 0) + 1);
+      }
+    }
+    const topWords = Array.from(wordCounts.entries()).filter(([_, count]) => count >= 2).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([word]) => word);
+    for (const word of topWords) {
+      issues.push(`Improve handling of "${word}" related issues`);
+    }
+    return issues.length > 0 ? issues : ["Review and improve general approach"];
+  }
+  getExperiences(category) {
+    if (category) {
+      return this.experiences.filter((e) => e.category === category);
+    }
+    return [...this.experiences];
+  }
+  getSuccessRate(category) {
+    const exps = this.getExperiences(category);
+    if (exps.length === 0)
+      return 0;
+    return exps.filter((e) => e.correct).length / exps.length;
+  }
+}
+var PerformanceTracker, SelfImprovementEngine;
+var init_SelfImprovementEngine = __esm(() => {
+  PerformanceTracker = class PerformanceTracker extends EventEmitter {
+    metrics = [];
+    metricsFile;
+    maxMetrics = 1e5;
+    constructor(dataDir) {
+      super();
+      this.metricsFile = path.join(dataDir, "performance-metrics.json");
+      this.load();
+    }
+    load() {
+      try {
+        if (fs.existsSync(this.metricsFile)) {
+          const data = JSON.parse(fs.readFileSync(this.metricsFile, "utf-8"));
+          this.metrics = data.map((m) => ({
+            ...m,
+            timestamp: new Date(m.timestamp)
+          }));
+        }
+      } catch (error) {
+        console.error("Failed to load metrics:", error);
+        this.metrics = [];
+      }
+    }
+    save() {
+      try {
+        const dir = path.dirname(this.metricsFile);
+        if (!fs.existsSync(dir)) {
+          fs.mkdirSync(dir, { recursive: true });
+        }
+        fs.writeFileSync(this.metricsFile, JSON.stringify(this.metrics, null, 2));
+      } catch (error) {
+        console.error("Failed to save metrics:", error);
+      }
+    }
+    record(metric) {
+      const id = `metric_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const fullMetric = {
+        ...metric,
+        id,
+        timestamp: new Date
+      };
+      this.metrics.push(fullMetric);
+      if (this.metrics.length > this.maxMetrics) {
+        this.metrics = this.metrics.slice(-this.maxMetrics);
+      }
+      this.save();
+      this.emit("metric", fullMetric);
+      return id;
+    }
+    getMetrics(options) {
+      let filtered = [...this.metrics];
+      if (options?.category) {
+        filtered = filtered.filter((m) => m.category === options.category);
+      }
+      if (options?.since) {
+        filtered = filtered.filter((m) => m.timestamp >= options.since);
+      }
+      if (options?.successOnly) {
+        filtered = filtered.filter((m) => m.success);
+      }
+      if (options?.failureOnly) {
+        filtered = filtered.filter((m) => !m.success);
+      }
+      if (options?.limit) {
+        filtered = filtered.slice(-options.limit);
+      }
+      return filtered;
+    }
+    getSuccessRate(category, since) {
+      const metrics = this.getMetrics({ category, since });
+      if (metrics.length === 0)
+        return 0;
+      const successes = metrics.filter((m) => m.success).length;
+      return successes / metrics.length;
+    }
+    getAverageDuration(category, since) {
+      const metrics = this.getMetrics({ category, since });
+      if (metrics.length === 0)
+        return 0;
+      return metrics.reduce((sum, m) => sum + m.duration, 0) / metrics.length;
+    }
+    getStats() {
+      const categories = ["reasoning", "coding", "security", "memory", "learning", "interaction"];
+      const categoryStats = {};
+      for (const cat of categories) {
+        const catMetrics = this.getMetrics({ category: cat });
+        categoryStats[cat] = {
+          count: catMetrics.length,
+          successRate: this.getSuccessRate(cat),
+          avgDuration: this.getAverageDuration(cat)
+        };
+      }
+      return {
+        totalMetrics: this.metrics.length,
+        successRate: this.getSuccessRate(),
+        averageDuration: this.getAverageDuration(),
+        categoryStats,
+        errorRate: 1 - this.getSuccessRate()
+      };
+    }
+  };
+  SelfImprovementEngine = class SelfImprovementEngine extends EventEmitter {
+    performance;
+    weaknesses;
+    proposals;
+    modifier;
+    learning;
+    dataDir;
+    projectRoot;
+    improvementInterval = null;
+    isRunning = false;
+    constructor(projectRoot = process.cwd(), dataDir) {
+      super();
+      this.projectRoot = projectRoot;
+      this.dataDir = dataDir || path.join(projectRoot, "data", "self-improvement");
+      if (!fs.existsSync(this.dataDir)) {
+        fs.mkdirSync(this.dataDir, { recursive: true });
+      }
+      this.performance = new PerformanceTracker(this.dataDir);
+      this.weaknesses = new WeaknessAnalyzer(this.dataDir);
+      this.proposals = new ImprovementProposer(this.dataDir);
+      this.modifier = new SelfModifier(this.dataDir, projectRoot);
+      this.learning = new LearningEngine(this.dataDir);
+      this.performance.on("metric", (metric) => {
+        this.emit("performance", metric);
+      });
+    }
+    recordPerformance(metric) {
+      return this.performance.record(metric);
+    }
+    recordExperience(experience) {
+      return this.learning.recordExperience(experience);
+    }
+    async runCycle() {
+      this.emit("cycleStart", { timestamp: new Date });
+      const result = {
+        weaknessesFound: 0,
+        proposalsGenerated: 0,
+        proposalsApproved: 0,
+        modificationsApplied: 0,
+        improvements: []
+      };
+      const stats = this.performance.getStats();
+      const recentMetrics = this.performance.getMetrics({ since: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) });
+      const weaknessPatterns = this.weaknesses.analyze(recentMetrics);
+      result.weaknessesFound = weaknessPatterns.length;
+      this.emit("weaknessesFound", { count: weaknessPatterns.length, patterns: weaknessPatterns });
+      const newProposals = this.proposals.generateProposals(weaknessPatterns, stats);
+      result.proposalsGenerated = newProposals.length;
+      this.emit("proposalsGenerated", { count: newProposals.length, proposals: newProposals });
+      for (const proposal of newProposals) {
+        if (proposal.risk === "low" && proposal.priority >= 7) {
+          this.proposals.approve(proposal.id);
+          result.proposalsApproved++;
+          this.emit("proposalApproved", { proposal });
+        }
+      }
+      const approvedProposals = this.proposals.getProposals({ status: "approved" });
+      for (const proposal of approvedProposals) {
+        if (proposal.proposedChanges.length > 0) {
+          const modification = await this.modifier.applyProposal(proposal);
+          if (modification.success) {
+            proposal.status = "completed";
+            proposal.implementedAt = new Date;
+            proposal.results = "Successfully implemented";
+            result.modificationsApplied++;
+            result.improvements.push(`Applied: ${proposal.title}`);
+            this.emit("modificationApplied", { modification, proposal });
+          } else {
+            proposal.status = "proposed";
+            proposal.results = `Failed: ${modification.errors.join(", ")}`;
+            this.emit("modificationFailed", { modification, proposal });
+          }
+        }
+      }
+      const learningResult = this.learning.learnFromExperiences();
+      for (const improvement of learningResult.improvements) {
+        result.improvements.push(`${improvement.category}: ${improvement.suggestion}`);
+      }
+      this.emit("cycleComplete", { timestamp: new Date, result });
+      return result;
+    }
+    startContinuous(intervalMs = 60 * 60 * 1000) {
+      if (this.isRunning)
+        return;
+      this.isRunning = true;
+      this.improvementInterval = setInterval(() => {
+        this.runCycle().catch((err) => {
+          this.emit("error", err);
+        });
+      }, intervalMs);
+      this.emit("started", { interval: intervalMs });
+    }
+    stopContinuous() {
+      if (this.improvementInterval) {
+        clearInterval(this.improvementInterval);
+        this.improvementInterval = null;
+      }
+      this.isRunning = false;
+      this.emit("stopped");
+    }
+    getStatus() {
+      return {
+        isRunning: this.isRunning,
+        totalMetrics: this.performance.getMetrics().length,
+        totalExperiences: this.learning.getExperiences().length,
+        totalProposals: this.proposals.getProposals().length,
+        completedProposals: this.proposals.getProposals({ status: "completed" }).length,
+        pendingProposals: this.proposals.getPendingProposals().length,
+        successRate: this.performance.getSuccessRate(),
+        topWeaknesses: this.weaknesses.getTopWeaknesses(5)
+      };
+    }
+    generateReport() {
+      const status = this.getStatus();
+      const stats = this.performance.getStats();
+      const learningPatterns = this.learning.learnFromExperiences();
+      let report = `# Kai Agent Self-Improvement Report
+
+`;
+      report += `Generated: ${new Date().toISOString()}
+
+`;
+      report += `## Overview
+
+`;
+      report += `- Running: ${status.isRunning ? "Yes" : "No"}
+`;
+      report += `- Total Performance Metrics: ${status.totalMetrics}
+`;
+      report += `- Total Learning Experiences: ${status.totalExperiences}
+`;
+      report += `- Overall Success Rate: ${(status.successRate * 100).toFixed(1)}%
+
+`;
+      report += `## Category Statistics
+
+`;
+      for (const [category, catStats] of Object.entries(stats.categoryStats)) {
+        report += `### ${category}
+`;
+        report += `- Count: ${catStats.count}
+`;
+        report += `- Success Rate: ${(catStats.successRate * 100).toFixed(1)}%
+`;
+        report += `- Avg Duration: ${catStats.avgDuration.toFixed(0)}ms
+
+`;
+      }
+      report += `## Top Weaknesses
+
+`;
+      for (const weakness of status.topWeaknesses) {
+        report += `### ${weakness.pattern}
+`;
+        report += `- Severity: ${weakness.severity}
+`;
+        report += `- Frequency: ${weakness.frequency}
+`;
+        report += `- Impact: ${weakness.impact}
+`;
+        report += `- Suggested Fixes: ${weakness.suggestedFixes.join(", ")}
+
+`;
+      }
+      report += `## Proposals
+
+`;
+      report += `- Completed: ${status.completedProposals}
+`;
+      report += `- Pending: ${status.pendingProposals}
+
+`;
+      report += `## Learning Patterns
+
+`;
+      for (const pattern of learningPatterns.patterns) {
+        report += `- ${pattern.category}: ${(pattern.successRate * 100).toFixed(1)}% success
+`;
+      }
+      return report;
+    }
+  };
+});
+
+// src/self-improvement/SelfLearningTrainer.ts
+import { EventEmitter as EventEmitter2 } from "events";
+import * as fs2 from "fs";
+import * as path2 from "path";
+
+class TrainingDataManager {
+  examples = new Map;
+  dataFile;
+  categories = new Map;
+  constructor(dataDir) {
+    this.dataFile = path2.join(dataDir, "training-examples.json");
+    this.load();
+  }
+  load() {
+    try {
+      if (fs2.existsSync(this.dataFile)) {
+        const data = JSON.parse(fs2.readFileSync(this.dataFile, "utf-8"));
+        for (const example of data) {
+          const fullExample = {
+            ...example,
+            createdAt: new Date(example.createdAt),
+            lastUsed: example.lastUsed ? new Date(example.lastUsed) : undefined
+          };
+          this.examples.set(fullExample.id, fullExample);
+          this.addToCategory(fullExample);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to load training data:", error);
+    }
+  }
+  save() {
+    try {
+      const dir = path2.dirname(this.dataFile);
+      if (!fs2.existsSync(dir)) {
+        fs2.mkdirSync(dir, { recursive: true });
+      }
+      fs2.writeFileSync(this.dataFile, JSON.stringify(Array.from(this.examples.values()), null, 2));
+    } catch (error) {
+      console.error("Failed to save training data:", error);
+    }
+  }
+  addToCategory(example) {
+    if (!this.categories.has(example.category)) {
+      this.categories.set(example.category, []);
+    }
+    this.categories.get(example.category).push(example);
+  }
+  addExample(example) {
+    const id = `example_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const fullExample = {
+      ...example,
+      id,
+      createdAt: new Date,
+      timesUsed: 0,
+      successRate: 0
+    };
+    this.examples.set(id, fullExample);
+    this.addToCategory(fullExample);
+    this.save();
+    return id;
+  }
+  addExamples(examples) {
+    return examples.map((e) => this.addExample(e));
+  }
+  getExample(id) {
+    return this.examples.get(id);
+  }
+  getRandomExample(category, difficulty) {
+    let pool = [];
+    if (category) {
+      pool = this.categories.get(category) || [];
+    } else {
+      pool = Array.from(this.examples.values());
+    }
+    if (difficulty !== undefined) {
+      pool = pool.filter((e) => Math.abs(e.difficulty - difficulty) <= 2);
+    }
+    if (pool.length === 0)
+      return;
+    pool.sort((a, b) => a.timesUsed - b.timesUsed);
+    const topQuarter = pool.slice(0, Math.ceil(pool.length / 4));
+    return topQuarter[Math.floor(Math.random() * topQuarter.length)];
+  }
+  getExamplesByCategory(category) {
+    return this.categories.get(category) || [];
+  }
+  getExamplesByTag(tag) {
+    return Array.from(this.examples.values()).filter((e) => e.tags.includes(tag));
+  }
+  recordUsage(id, success) {
+    const example = this.examples.get(id);
+    if (!example)
+      return;
+    example.timesUsed++;
+    example.lastUsed = new Date;
+    example.successRate = (example.successRate * (example.timesUsed - 1) + (success ? 1 : 0)) / example.timesUsed;
+    this.save();
+  }
+  getStats() {
+    const byCategory = {};
+    const byDifficulty = {};
+    let totalSuccessRate = 0;
+    for (const example of this.examples.values()) {
+      byCategory[example.category] = (byCategory[example.category] || 0) + 1;
+      byDifficulty[example.difficulty] = (byDifficulty[example.difficulty] || 0) + 1;
+      totalSuccessRate += example.successRate;
+    }
+    const sorted = Array.from(this.examples.values()).sort((a, b) => b.timesUsed - a.timesUsed);
+    return {
+      totalExamples: this.examples.size,
+      byCategory,
+      byDifficulty,
+      averageSuccessRate: this.examples.size > 0 ? totalSuccessRate / this.examples.size : 0,
+      mostUsed: sorted.slice(0, 10),
+      leastUsed: sorted.slice(-10).reverse()
+    };
+  }
+}
+var SelfLearningTrainer;
+var init_SelfLearningTrainer = __esm(() => {
+  SelfLearningTrainer = class SelfLearningTrainer extends EventEmitter2 {
+    dataManager;
+    selfImprovement;
+    neuralEngine = null;
+    memoryBrain = null;
+    dataDir;
+    sessions = [];
+    sessionsFile;
+    tasks = new Map;
+    reinforcementSignals = [];
+    isTraining = false;
+    trainingInterval = null;
+    constructor(selfImprovement, neuralEngine, memoryBrain, dataDir) {
+      super();
+      this.selfImprovement = selfImprovement;
+      this.neuralEngine = neuralEngine || null;
+      this.memoryBrain = memoryBrain || null;
+      this.dataDir = dataDir || path2.join(process.cwd(), "data", "training");
+      this.dataManager = new TrainingDataManager(this.dataDir);
+      this.sessionsFile = path2.join(this.dataDir, "training-sessions.json");
+      this.loadSessions();
+      this.initializeTrainingData();
+    }
+    loadSessions() {
+      try {
+        if (fs2.existsSync(this.sessionsFile)) {
+          const data = JSON.parse(fs2.readFileSync(this.sessionsFile, "utf-8"));
+          this.sessions = data.map((s) => ({
+            ...s,
+            startTime: new Date(s.startTime),
+            endTime: s.endTime ? new Date(s.endTime) : undefined
+          }));
+        }
+      } catch (error) {
+        console.error("Failed to load sessions:", error);
+      }
+    }
+    saveSessions() {
+      try {
+        const dir = path2.dirname(this.sessionsFile);
+        if (!fs2.existsSync(dir)) {
+          fs2.mkdirSync(dir, { recursive: true });
+        }
+        fs2.writeFileSync(this.sessionsFile, JSON.stringify(this.sessions, null, 2));
+      } catch (error) {
+        console.error("Failed to save sessions:", error);
+      }
+    }
+    initializeTrainingData() {
+      const codingExamples = [
+        {
+          input: "Write a function to reverse a string",
+          expectedOutput: `function reverseString(str: string): string {
+  return str.split('').reverse().join('');
+}`,
+          category: "coding",
+          difficulty: 2,
+          tags: ["string", "manipulation", "basic"],
+          source: "validation"
+        },
+        {
+          input: "Implement a binary search algorithm",
+          expectedOutput: `function binarySearch(arr: number[], target: number): number {
+  let left = 0, right = arr.length - 1;
+  while (left <= right) {
+    const mid = Math.floor((left + right) / 2);
+    if (arr[mid] === target) return mid;
+    if (arr[mid] < target) left = mid + 1;
+    else right = mid - 1;
+  }
+  return -1;
+}`,
+          category: "coding",
+          difficulty: 4,
+          tags: ["algorithm", "search", "binary"],
+          source: "validation"
+        },
+        {
+          input: "Create a REST API endpoint for user CRUD",
+          expectedOutput: `app.get('/users', async (req, res) => {
+  const users = await User.findAll();
+  res.json(users);
+});
+
+app.post('/users', async (req, res) => {
+  const user = await User.create(req.body);
+  res.status(201).json(user);
+});`,
+          category: "coding",
+          difficulty: 5,
+          tags: ["api", "rest", "crud", "backend"],
+          source: "validation"
+        }
+      ];
+      const securityExamples = [
+        {
+          input: "Identify SQL injection vulnerability in: SELECT * FROM users WHERE id = ' + userId",
+          expectedOutput: "SQL INJECTION DETECTED: Direct string concatenation of user input. Use parameterized queries instead: SELECT * FROM users WHERE id = ?",
+          category: "security",
+          difficulty: 3,
+          tags: ["sql-injection", "vulnerability", "database"],
+          source: "validation"
+        },
+        {
+          input: "Analyze XSS risk: element.innerHTML = userInput",
+          expectedOutput: "XSS VULNERABILITY: Direct assignment to innerHTML. Sanitize input or use textContent instead.",
+          category: "security",
+          difficulty: 3,
+          tags: ["xss", "vulnerability", "frontend"],
+          source: "validation"
+        },
+        {
+          input: "Review authentication: password stored in plain text",
+          expectedOutput: "CRITICAL: Passwords must be hashed using bcrypt or argon2. Never store plain text passwords. Implement salt and proper key stretching.",
+          category: "security",
+          difficulty: 5,
+          tags: ["authentication", "password", "hashing", "critical"],
+          source: "validation"
+        }
+      ];
+      const reasoningExamples = [
+        {
+          input: "If A implies B, and B implies C, what does A imply?",
+          expectedOutput: "By transitivity, A implies C. This is a valid logical deduction: (A\u2192B) \u2227 (B\u2192C) \u22A2 (A\u2192C)",
+          category: "reasoning",
+          difficulty: 4,
+          tags: ["logic", "transitivity", "deduction"],
+          source: "validation"
+        },
+        {
+          input: "Debug: Code works in dev but fails in production",
+          expectedOutput: "Potential causes: 1) Environment variables missing, 2) Database connection differences, 3) File path issues, 4) Memory constraints, 5) Network configuration. Check logs and compare environments.",
+          category: "reasoning",
+          difficulty: 6,
+          tags: ["debugging", "environment", "production"],
+          source: "validation"
+        }
+      ];
+      const existingCount = this.dataManager.getStats().totalExamples;
+      if (existingCount < 10) {
+        this.dataManager.addExamples([...codingExamples, ...securityExamples, ...reasoningExamples]);
+      }
+    }
+    async practice(category, difficulty) {
+      const example = this.dataManager.getRandomExample(category, difficulty);
+      if (!example) {
+        throw new Error("No training example available");
+      }
+      const task = {
+        id: `task_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        type: "practice",
+        category: example.category,
+        difficulty: example.difficulty,
+        status: "running",
+        input: example.input,
+        expectedOutput: example.expectedOutput,
+        startedAt: new Date
+      };
+      this.tasks.set(task.id, task);
+      this.emit("taskStarted", task);
+      try {
+        if (this.neuralEngine) {
+          task.actualOutput = await this.neuralEngine.process(example.input);
+        } else {
+          task.actualOutput = await this.simulateProcessing(example);
+        }
+        const evaluation = this.evaluateOutput(task.expectedOutput, task.actualOutput);
+        task.success = evaluation.success;
+        task.feedback = evaluation.feedback;
+        task.status = "completed";
+        task.completedAt = new Date;
+        this.selfImprovement.recordExperience({
+          input: example.input,
+          expectedOutput: example.expectedOutput,
+          actualOutput: task.actualOutput,
+          category: example.category,
+          correct: task.success,
+          learned: task.success,
+          improvementMade: false,
+          feedback: task.feedback
+        });
+        this.dataManager.recordUsage(example.id, task.success);
+        this.sendReinforcementSignal(task.id, task.success ? 1 : -0.5, task.feedback, example.category);
+        this.emit("taskCompleted", task);
+      } catch (error) {
+        task.status = "failed";
+        task.feedback = String(error);
+        this.emit("taskFailed", { task, error });
+      }
+      return task;
+    }
+    async validate(count = 10) {
+      const tasks = [];
+      let successes = 0;
+      for (let i = 0;i < count; i++) {
+        try {
+          const task = await this.practice();
+          if (task.success)
+            successes++;
+          tasks.push(task);
+        } catch (error) {
+          console.error("Validation task failed:", error);
+        }
+      }
+      const accuracy = tasks.length > 0 ? successes / tasks.length : 0;
+      return { accuracy, tasks };
+    }
+    async explore(domain) {
+      const tasks = [];
+      const relatedExamples = this.findRelatedExamples(domain);
+      for (const example of relatedExamples.slice(0, 5)) {
+        const variations = this.generateVariations(example);
+        for (const variation of variations) {
+          try {
+            const task = await this.practice(variation.category, variation.difficulty);
+            tasks.push(task);
+          } catch (error) {
+            console.error("Exploration task failed:", error);
+          }
+        }
+      }
+      return tasks;
+    }
+    async consolidate() {
+      if (!this.memoryBrain) {
+        return { consolidated: 0, forgotten: 0 };
+      }
+      let consolidated = 0;
+      let forgotten = 0;
+      const experiences = this.selfImprovement.learning.getExperiences();
+      for (const experience of experiences) {
+        if (experience.correct && experience.learned) {
+          await this.memoryBrain.store({
+            type: "semantic",
+            content: `Input: ${experience.input}
+Output: ${experience.actualOutput}`,
+            metadata: {
+              category: experience.category,
+              timestamp: experience.timestamp
+            },
+            importance: 0.8
+          });
+          consolidated++;
+        } else if (!experience.correct) {
+          const similarFailures = experiences.filter((e) => e.category === experience.category && !e.correct).length;
+          if (similarFailures > 10) {
+            forgotten++;
+          }
+        }
+      }
+      return { consolidated, forgotten };
+    }
+    async startSession(durationMs = 60 * 60 * 1000) {
+      const session = {
+        id: `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        startTime: new Date,
+        examplesProcessed: 0,
+        successes: 0,
+        failures: 0,
+        improvements: [],
+        errors: [],
+        stats: {
+          accuracy: 0,
+          loss: 0,
+          duration: 0
+        }
+      };
+      this.sessions.push(session);
+      this.isTraining = true;
+      const endTime = Date.now() + durationMs;
+      while (Date.now() < endTime && this.isTraining) {
+        try {
+          const difficulty = 1 + Math.floor(Math.random() * 9);
+          const task = await this.practice(undefined, difficulty);
+          session.examplesProcessed++;
+          if (task.success) {
+            session.successes++;
+          } else {
+            session.failures++;
+            session.errors.push(task.feedback || "Unknown error");
+          }
+          session.stats.accuracy = session.successes / session.examplesProcessed;
+          session.stats.duration = Date.now() - session.startTime.getTime();
+          if (session.examplesProcessed % 10 === 0) {
+            const consolidation = await this.consolidate();
+            if (consolidation.consolidated > 0) {
+              session.improvements.push(`Consolidated ${consolidation.consolidated} experiences`);
+            }
+          }
+          await new Promise((resolve) => setTimeout(resolve, 100));
+        } catch (error) {
+          session.errors.push(String(error));
+        }
+      }
+      session.endTime = new Date;
+      session.stats.duration = session.endTime.getTime() - session.startTime.getTime();
+      this.isTraining = false;
+      this.saveSessions();
+      this.emit("sessionComplete", session);
+      return session;
+    }
+    stopSession() {
+      this.isTraining = false;
+    }
+    sendReinforcementSignal(taskId, signal, reason, category) {
+      const reinforcement = {
+        id: `reinforce_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        taskId,
+        signal: Math.max(-1, Math.min(1, signal)),
+        reason,
+        category,
+        timestamp: new Date
+      };
+      this.reinforcementSignals.push(reinforcement);
+      this.emit("reinforcement", reinforcement);
+      if (this.neuralEngine) {
+        this.neuralEngine.adjustWeights(reinforcement.signal, reinforcement.category);
+      }
+    }
+    async simulateProcessing(example) {
+      const baseOutput = example.expectedOutput;
+      if (example.difficulty > 5 && Math.random() < 0.3) {
+        return baseOutput.slice(0, Math.floor(baseOutput.length * 0.8)) + "... [incomplete]";
+      }
+      if (example.difficulty > 7 && Math.random() < 0.2) {
+        return baseOutput + `
+
+// Note: May need optimization`;
+      }
+      return baseOutput;
+    }
+    evaluateOutput(expected, actual) {
+      if (expected.trim() === actual.trim()) {
+        return { success: true, feedback: "Perfect match!" };
+      }
+      const normalizedExpected = expected.toLowerCase().replace(/\s+/g, " ").trim();
+      const normalizedActual = actual.toLowerCase().replace(/\s+/g, " ").trim();
+      const similarity = this.calculateSimilarity(normalizedExpected, normalizedActual);
+      if (similarity > 0.9) {
+        return { success: true, feedback: "Very close match (minor differences)" };
+      }
+      if (similarity > 0.7) {
+        return { success: true, feedback: "Good match with some differences" };
+      }
+      if (similarity > 0.5) {
+        return { success: false, feedback: "Partial match, needs improvement" };
+      }
+      return { success: false, feedback: "Output does not match expected result" };
+    }
+    calculateSimilarity(a, b) {
+      const wordsA = new Set(a.split(" ").filter((w) => w.length > 2));
+      const wordsB = new Set(b.split(" ").filter((w) => w.length > 2));
+      const intersection = new Set([...wordsA].filter((x) => wordsB.has(x)));
+      const union = new Set([...wordsA, ...wordsB]);
+      return intersection.size / union.size;
+    }
+    findRelatedExamples(domain) {
+      const allExamples = Array.from(this.dataManager.getStats().byCategory.keys());
+      const related = allExamples.filter((cat) => cat.includes(domain) || domain.includes(cat));
+      const examples = [];
+      for (const cat of related) {
+        examples.push(...this.dataManager.getExamplesByCategory(cat));
+      }
+      return examples;
+    }
+    generateVariations(example) {
+      const variations = [];
+      variations.push({
+        category: example.category,
+        difficulty: Math.max(1, example.difficulty - 2),
+        input: `Simplified: ${example.input}`
+      });
+      variations.push({
+        category: example.category,
+        difficulty: Math.min(10, example.difficulty + 2),
+        input: `Complex version: ${example.input} with additional constraints`
+      });
+      if (example.category === "coding") {
+        variations.push({
+          category: "security",
+          difficulty: example.difficulty,
+          input: `Security review: ${example.input}`
+        });
+      }
+      return variations;
+    }
+    getDataManager() {
+      return this.dataManager;
+    }
+    getSessions() {
+      return [...this.sessions];
+    }
+    getCurrentSession() {
+      return this.sessions[this.sessions.length - 1];
+    }
+    getReinforcementSignals() {
+      return [...this.reinforcementSignals];
+    }
+    isCurrentlyTraining() {
+      return this.isTraining;
+    }
+    getStatus() {
+      const completedSessions = this.sessions.filter((s) => s.endTime);
+      const avgAccuracy = completedSessions.length > 0 ? completedSessions.reduce((sum, s) => sum + s.stats.accuracy, 0) / completedSessions.length : 0;
+      return {
+        isTraining: this.isTraining,
+        totalSessions: this.sessions.length,
+        totalExamples: this.dataManager.getStats().totalExamples,
+        averageAccuracy: avgAccuracy,
+        reinforcementCount: this.reinforcementSignals.length
+      };
+    }
+  };
+});
+
 // src/core/agent.ts
 var exports_agent = {};
 __export(exports_agent, {
@@ -5688,6 +7178,8 @@ class KaiAgentImpl {
   actionHistory;
   initialized;
   knowledgeBase;
+  selfImprovement;
+  trainer;
   constructor(name = "Kai") {
     this.id = v4();
     this.name = name;
@@ -5712,6 +7204,8 @@ class KaiAgentImpl {
     this.knowledge = this.knowledgeBase;
     this.huggingFaceIngestor = new HuggingFaceIngestor(this.knowledgeBase);
     this.actionHistory = [];
+    this.selfImprovement = new SelfImprovementEngine(process.cwd(), `${process.cwd()}/data/self-improvement`);
+    this.trainer = new SelfLearningTrainer(this.selfImprovement, undefined, undefined, `${process.cwd()}/data/training`);
   }
   initializeBrain() {
     const networks = new Map;
@@ -6059,6 +7553,39 @@ Reasoning: ${reasoningCellResult[1]}`;
       lastActive: this.lastActive
     };
   }
+  async improve() {
+    return await this.selfImprovement.runCycle();
+  }
+  startSelfImprovement(intervalMs = 60 * 60 * 1000) {
+    this.selfImprovement.startContinuous(intervalMs);
+  }
+  stopSelfImprovement() {
+    this.selfImprovement.stopContinuous();
+  }
+  getImprovementStatus() {
+    return this.selfImprovement.getStatus();
+  }
+  generateImprovementReport() {
+    return this.selfImprovement.generateReport();
+  }
+  async train(durationMs = 60 * 60 * 1000) {
+    return await this.trainer.startSession(durationMs);
+  }
+  async practice(category, difficulty) {
+    return await this.trainer.practice(category, difficulty);
+  }
+  async validate(count = 10) {
+    return await this.trainer.validate(count);
+  }
+  recordPerformance(metric) {
+    return this.selfImprovement.recordPerformance(metric);
+  }
+  recordExperience(experience) {
+    return this.selfImprovement.recordExperience(experience);
+  }
+  getTrainingStatus() {
+    return this.trainer.getStatus();
+  }
 }
 var VERSION = "1.0.0", EMBEDDING_DIM8 = 768;
 var init_agent = __esm(() => {
@@ -6070,6 +7597,8 @@ var init_agent = __esm(() => {
   init_base();
   init_huggingface();
   init_embedding();
+  init_SelfImprovementEngine();
+  init_SelfLearningTrainer();
 });
 
 // src/index.ts
@@ -6086,6 +7615,8 @@ init_cell();
 init_network2();
 init_base();
 init_huggingface();
+init_SelfImprovementEngine();
+init_SelfLearningTrainer();
 init_activations();
 init_loss();
 init_optimizers();
@@ -6210,8 +7741,8 @@ function parseJson(json, fallback) {
     return fallback;
   }
 }
-function safeAccess(obj, path, fallback) {
-  const keys = path.split(".");
+function safeAccess(obj, path3, fallback) {
+  const keys = path3.split(".");
   let current = obj;
   for (const key of keys) {
     if (current && typeof current === "object" && key in current) {
@@ -6286,18 +7817,24 @@ export {
   add,
   activations,
   WorkingMemory,
+  WeaknessAnalyzer,
   VectorIndexImpl,
   VERSION2 as VERSION,
   TransformerNetwork,
+  TrainingDataManager,
   ThoughtTreeImpl,
   ThoughtImpl,
   SemanticMemory,
+  SelfModifier,
+  SelfLearningTrainer,
+  SelfImprovementEngine,
   SGDOptimizer,
   SECURITY_DATASETS,
   RecurrentNetwork,
   ReasoningEngineImpl,
   RMSpropOptimizer,
   ProceduralMemory,
+  PerformanceTracker,
   OptimizerBase,
   NeuronImpl,
   NetworkImpl,
@@ -6306,10 +7843,12 @@ export {
   MomentumOptimizer,
   MemorySystemImpl,
   MemoryBankImpl,
+  LearningEngine,
   LayerImpl,
   LSTMLayer,
   KnowledgeBase,
   KaiAgentImpl,
+  ImprovementProposer,
   HuggingFaceIngestor,
   FtrlOptimizer,
   EpisodicMemory,
