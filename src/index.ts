@@ -1,86 +1,80 @@
-// =============================================================================
-// KAI AGENT - MAIN ENTRY POINT (Phase 3)
-// =============================================================================
+/**
+ * Kai Agent - Neural AI Brain
+ * 
+ * A sophisticated AI agent framework combining:
+ * - Tree of Thoughts reasoning
+ * - Cell-based architecture
+ * - Multi-modal memory system
+ * - Extensible tool/command/plugin system
+ * 
+ * @packageDocumentation
+ */
 
-// Core Agent
-export { KaiAgentImpl as KaiAgent } from './core/agent';
-export { KnowledgeBase } from './knowledge/KnowledgeBase';
-export { LearningEngine } from './learning/LearningEngine';
-export { WebInterface } from './web/WebInterface';
+// Version
+export const VERSION = require('../package.json').version
 
-// Specialized Cells
-export { 
-  SecurityCell, 
-  AlgorithmCell, 
-  TestingCell, 
-  DevOpsCell, 
-  DatabaseCell,
-  CellFactory 
-} from './cells/SpecializedCells';
+// Core
+export { KaiAgent, KaiAgentConfig } from './core/KaiAgent'
+export { Cell, CellConfig, CellType } from './core/Cell'
+export { TreeOfThoughts, ToTNode, ToTConfig } from './core/TreeOfThoughts'
+export { QueryEngine } from './query/QueryEngine'
 
-// Phase 3: Self-Improvement
-export { 
-  PerformanceMonitor, 
-  MetaLearner, 
-  CodeOptimizer, 
-  SelfImprovementEngine 
-} from './self-improvement/SelfImprovement';
+// Tools
+export * from './tools'
 
-// Phase 3: Distributed Network
-export { 
-  NetworkTopologyManager, 
-  MessageRouter, 
-  LoadBalancer, 
-  DistributedCellNetwork 
-} from './distributed/DistributedNetwork';
+// Commands
+export * from './commands'
 
-// Phase 3: Real-Time Learning
-export { 
-  LearningEventBuffer, 
-  AdaptiveRuleEngine, 
-  RealTimeLearningEngine 
-} from './learning/RealTimeLearning';
+// Memory
+export * from './memory'
 
-// Phase 3: Multi-Modal Support
-export { 
-  TextProcessor, 
-  ImageProcessor, 
-  AudioProcessor, 
-  CodeProcessor, 
-  ModalityFusionEngine, 
-  MultimodalManager 
-} from './multimodal/MultimodalSupport';
+// Bridge
+export * from './bridge'
+
+// Plugins
+export * from './plugins'
 
 // Types
-export type { KnowledgeItem, KnowledgeCategory } from './knowledge/KnowledgeBase';
-export type { LearningEvent as LearningEventType, UserFeedback, LearnedPattern } from './learning/LearningEngine';
-export type { WebConfig } from './web/WebInterface';
+export type { Tool, ToolResult } from './tools'
 
-// Phase 3 Types
-export type { 
-  PerformanceMetric, 
-  ImprovementAction, 
-  MetaLearningPattern, 
-  SelfModel 
-} from './self-improvement/SelfImprovement';
+// Main exports
+import { KaiAgent } from './core/KaiAgent'
+import { defaultMemory, defaultVectorMemory, defaultWorkingMemory } from './memory'
+import { defaultBridgeManager } from './bridge'
+import { defaultPluginManager } from './plugins'
+import { commandRegistry, registerAllCommands } from './commands'
 
-export type { 
-  CellNode, 
-  CellMessage, 
-  TaskDistribution, 
-  NetworkTopology 
-} from './distributed/DistributedNetwork';
+/**
+ * Create a new Kai Agent instance
+ */
+export function createAgent(config?: Partial<import('./core/KaiAgent').KaiAgentConfig>): KaiAgent {
+  return new KaiAgent(config)
+}
 
-export type { 
-  LearningStream, 
-  AdaptiveRule, 
-  KnowledgeUpdate, 
-  FeedbackSignal 
-} from './learning/RealTimeLearning';
+/**
+ * Initialize Kai Agent with defaults
+ */
+export function initialize(): {
+  agent: KaiAgent
+  memory: typeof defaultMemory
+  vectorMemory: typeof defaultVectorMemory
+  workingMemory: typeof defaultWorkingMemory
+  bridges: typeof defaultBridgeManager
+  plugins: typeof defaultPluginManager
+  commands: typeof commandRegistry
+} {
+  registerAllCommands()
+  
+  return {
+    agent: new KaiAgent(),
+    memory: defaultMemory,
+    vectorMemory: defaultVectorMemory,
+    workingMemory: defaultWorkingMemory,
+    bridges: defaultBridgeManager,
+    plugins: defaultPluginManager,
+    commands: commandRegistry,
+  }
+}
 
-export type { 
-  Modality, 
-  MultimodalInput, 
-  ProcessedModality, 
-  MultimodalEmbedding 
-} from './multimodal/MultimodalSupport';
+// Default export
+export default KaiAgent

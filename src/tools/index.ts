@@ -1,70 +1,107 @@
 /**
- * Kai Agent Tools Index
- * Export all tools for the agent
+ * Kai Agent Tools
+ * Complete tool set for the Kai Agent
+ * 
+ * Based on Claude Code architecture patterns
  */
 
 // Core tool infrastructure
-export { buildTool, toolMatchesName, findToolByName, getEmptyToolPermissionContext } from './Tool.js'
-export type {
-  Tool,
-  Tools,
-  ToolDef,
-  ToolResult,
-  ToolUseContext,
-  ToolCallProgress,
-  ToolProgress,
-  ValidationResult,
-  ToolPermissionContext,
-  CanUseToolFn,
-} from './Tool.js'
+export { buildTool, Tool, ToolDefinition, ToolResult, ToolCallResult, ToolPermissionCheck, ToolPermissionBehavior, ToolRiskLevel } from './Tool'
+export { PermissionRule, PermissionMode, PermissionSchema, defaultPermissions, matchesToolCall, matchesRule, checkPermissions } from './permissions'
 
-// Permission system
-export {
-  matchWildcardPattern,
-  matchesPermissionRule,
-  matchesAnyRule,
-  parsePermissionRule,
-  createPermissionChecker,
-  DEFAULT_ALLOW_RULES,
-  DEFAULT_DENY_RULES,
-} from './permissions.js'
-export type {
-  PermissionMode,
-  PermissionResult,
-  PermissionDecision,
-  PermissionRule,
-  PermissionCheckContext,
-} from './permissions.js'
+// File tools
+export { FileReadTool, FileReadInput, FileReadOutput } from './FileReadTool'
+export { FileEditTool, FileEditInput, FileEditOutput } from './FileEditTool'
 
-// Tool implementations
-export { BashTool, bashInputSchema } from './BashTool/BashTool.js'
-export type { BashToolInput, BashToolOutput, BashProgress } from './BashTool/BashTool.js'
+// Shell tool
+export { BashTool, BashInput, BashOutput } from './BashTool'
 
-export { FileEditTool, fileEditInputSchema } from './FileEditTool/FileEditTool.js'
-export type { FileEditInput, FileEditOutput } from './FileEditTool/FileEditTool.js'
+// Search tools
+export { GlobTool, GlobInput, GlobOutput } from './GlobTool'
+export { GrepTool, GrepInput, GrepOutput } from './GrepTool'
 
-export { FileReadTool, fileReadInputSchema } from './FileReadTool/FileReadTool.js'
-export type { FileReadInput, FileReadOutput } from './FileReadTool/FileReadTool.js'
+// Web tools
+export { WebSearchTool, WebSearchInput, WebSearchOutput } from './WebSearchTool'
+export { WebFetchTool, WebFetchInput, WebFetchOutput } from './WebFetchTool'
 
-// Tool registry
-import { BashTool } from './BashTool/BashTool.js'
-import { FileEditTool } from './FileEditTool/FileEditTool.js'
-import { FileReadTool } from './FileReadTool/FileReadTool.js'
+// Notebook tool
+export { NotebookEditTool, NotebookEditInput, NotebookEditOutput } from './NotebookEditTool'
 
-import type { Tools } from './Tool.js'
+// Task management
+export { TaskTool, TaskInput, TaskOutput, TaskManager } from './TaskTool'
 
-/**
- * Default tool set for Kai Agent
- */
-export const defaultTools: Tools = [
+// Execution control
+export { StopTool, StopInput, StopOutput, executionState } from './StopTool'
+
+// Default tool set
+import { FileReadTool } from './FileReadTool'
+import { FileEditTool } from './FileEditTool'
+import { BashTool } from './BashTool'
+import { GlobTool } from './GlobTool'
+import { GrepTool } from './GrepTool'
+import { WebSearchTool } from './WebSearchTool'
+import { WebFetchTool } from './WebFetchTool'
+import { NotebookEditTool } from './NotebookEditTool'
+import { TaskTool } from './TaskTool'
+import { StopTool } from './StopTool'
+
+export const defaultTools = [
   FileReadTool,
   FileEditTool,
   BashTool,
+  GlobTool,
+  GrepTool,
+  WebSearchTool,
+  WebFetchTool,
+  NotebookEditTool,
+  TaskTool,
+  StopTool,
 ]
 
+// Tool registry
+export const toolRegistry = new Map([
+  ['FileRead', FileReadTool],
+  ['FileEdit', FileEditTool],
+  ['Bash', BashTool],
+  ['Glob', GlobTool],
+  ['Grep', GrepTool],
+  ['WebSearch', WebSearchTool],
+  ['WebFetch', WebFetchTool],
+  ['NotebookEdit', NotebookEditTool],
+  ['Task', TaskTool],
+  ['Stop', StopTool],
+])
+
 /**
- * Get all available tools
+ * Get tool by name
  */
-export function getTools(): Tools {
-  return defaultTools
+export function getTool(name: string) {
+  return toolRegistry.get(name)
+}
+
+/**
+ * Check if tool exists
+ */
+export function hasTool(name: string): boolean {
+  return toolRegistry.has(name)
+}
+
+/**
+ * List all available tools
+ */
+export function listTools(): string[] {
+  return Array.from(toolRegistry.keys())
+}
+
+/**
+ * Get tool descriptions for prompt
+ */
+export function getToolDescriptions(): string {
+  const descriptions: string[] = []
+  
+  for (const [name, tool] of toolRegistry) {
+    descriptions.push(`## ${name}\n${tool.description}`)
+  }
+  
+  return descriptions.join('\n\n')
 }
