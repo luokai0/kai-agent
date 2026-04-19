@@ -1,408 +1,409 @@
 # 🧠 Kai Agent - Neural AI Brain
 
-**A revolutionary local AI system built from scratch in TypeScript**
+<div align="center">
 
-> **Built by Zo AI for luokai**  
-> Repository: https://github.com/luokai0/kai-agent
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue.svg)](https://www.typescriptlang.org/)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Lines](https://img.shields.io/badge/Lines-39%2C172-orange.svg)](#)
+
+**A sophisticated AI agent framework with Tree of Thoughts reasoning, cell-based architecture, and multi-modal memory system.**
+
+[Features](#features) • [Architecture](#architecture) • [Installation](#installation) • [Usage](#usage) • [API](#api) • [Contributing](#contributing)
+
+</div>
 
 ---
 
 ## 🚀 Features
 
-### Phase 1: Neural Foundation ✅
+### Core Capabilities
 
-#### Neural Network Core
-- **Tensor Operations**: Full tensor math library (create, reshape, add, multiply, dot, transpose)
-- **Neural Layers**: Dense layers with configurable activation functions
-- **Activation Functions**: Sigmoid, Tanh, ReLU, LeakyReLU, Softmax, GELU
-- **Loss Functions**: MSE, Cross-Entropy, Binary Cross-Entropy
-- **Optimizers**: SGD with momentum, Adam optimizer
+| Feature | Description |
+|---------|-------------|
+| **Tree of Thoughts (ToT)** | Multi-branch reasoning with backtracking and evaluation |
+| **Cell-Based Architecture** | Specialized processing units (Manager, Research, Coder, etc.) |
+| **Multi-Modal Memory** | Short-term, Long-term, Episodic, Semantic, Procedural |
+| **Vector Memory** | Semantic similarity search with embeddings |
+| **Working Memory** | Active memory with attention and focus mechanisms |
 
-#### Memory Brain System
-- **Vector Embeddings**: Word embeddings with vocabulary support
-- **Memory Banks**: Episodic and semantic memory storage
-- **Vector Store**: High-performance vector database with similarity search
-- **Memory System**: Integrated short-term and long-term memory
+### Tools (10 Tools)
 
-#### Tree of Thoughts Engine
-- **Thought Tree**: Multi-branch reasoning with backtracking
-- **Thought Types**: Analysis, Evaluation, Generation, Refinement, Exploration
-- **Evaluation**: Automatic scoring and pruning of thought paths
-- **Backtracking**: Intelligent path selection based on scores
+| Tool | Description |
+|------|-------------|
+| `FileRead` | Read files with line ranges and encoding support |
+| `FileEdit` | Edit files with string replacement |
+| `Bash` | Execute shell commands with sandboxing |
+| `Glob` | Fast file pattern matching |
+| `Grep` | High-performance content search (ripgrep) |
+| `WebSearch` | Search the web with multiple providers |
+| `WebFetch` | Fetch and extract web content |
+| `NotebookEdit` | Edit Jupyter notebooks programmatically |
+| `Task` | Create and manage subtasks for parallel execution |
+| `Stop` | Stop execution and signal completion |
 
-#### Cell-Based Architecture
-- **Specialized Cells**: Coding, Security, Reasoning, Memory, Creative cells
-- **Cell Network**: Inter-cellular communication and collaboration
-- **Cell Types**: 
-  - `coding` - Code generation and analysis
-  - `security` - Cybersecurity knowledge and threat detection
-  - `reasoning` - Logical deduction and problem solving
-  - `memory` - Information storage and retrieval
-  - `creative` - Creative content generation
+### Commands (30+ Commands)
 
----
+#### General
+- `/help` - Show available commands
+- `/version` - Show version information
+- `/clear` - Clear screen
+- `/exit` - Exit Kai Agent
+- `/echo` - Print text
+- `/date` - Show current date/time
+- `/uptime` - Show system uptime
+- `/env` - Show environment variables
+- `/history` - Show command history
 
-### Phase 2: Knowledge & Interface ✅
+#### File Operations
+- `/ls` - List files
+- `/cd` - Change directory
+- `/pwd` - Print working directory
+- `/mkdir` - Create directory
+- `/rm` - Remove file/directory
+- `/cp` - Copy file
+- `/mv` - Move file
+- `/touch` - Create file
+- `/cat` - Display file contents
+- `/find` - Find files by pattern
 
-#### Knowledge System
-- **Knowledge Base**: Persistent knowledge storage with categories
-- **HuggingFace Integration**: Dataset ingestion pipeline for coding/security
-- **Coding Knowledge**: 50+ patterns, algorithms, best practices
-- **Security Knowledge**: 30+ cybersecurity concepts, attack types, defenses
+#### Memory
+- `/remember` - Store a memory
+- `/recall` - Search memories
+- `/forget` - Remove a memory
+- `/promote` - Promote to long-term
+- `/clear-mem` - Clear memories
+- `/mem-stats` - Show memory statistics
 
-#### Specialized Cells
-- **SecurityCell**: Threat detection, vulnerability analysis, secure coding
-- **AlgorithmCell**: Algorithm analysis, optimization, complexity
-- **TestingCell**: Test generation, coverage analysis, mocking
-- **DevOpsCell**: CI/CD, containers, deployment strategies
-- **DatabaseCell**: Query optimization, schema design, migrations
+#### AI
+- `/think` - Tree of Thoughts reasoning
+- `/generate` - Generate content
+- `/analyze` - Analyze content
+- `/summarize` - Summarize content
+- `/explain` - Explain concepts
+- `/brainstorm` - Brainstorm ideas
+- `/improve` - Improve content
 
-#### Learning Engine
-- **Pattern Extraction**: Learn from interactions and feedback
-- **Knowledge Updates**: Continuous improvement of knowledge base
-- **Adaptation**: Adjust responses based on patterns
+### Bridge System
 
-#### Web Interface
-- **REST API**: Full API for agent interaction
-- **Web UI**: Beautiful dashboard for querying the agent
-- **Health Monitoring**: Real-time system status
+| Bridge | Description |
+|--------|-------------|
+| `IDBridge` | IDE integration via WebSocket |
+| `CLIBridge` | Command-line interface |
+| `APIBridge` | HTTP API endpoint |
 
----
+### Plugin System
 
-### Phase 3: Advanced Features ✅
-
-#### Self-Improvement Engine
-- **PerformanceMonitor**: Track metrics with trends and threshold alerts
-- **MetaLearner**: Pattern extraction, learning strategies, adaptation tracking
-- **CodeOptimizer**: Code transformation rules (unused imports, conditions, loops)
-- **SelfImprovementEngine**: Autonomous improvement cycles, self-assessment
-
-#### Distributed Cell Network
-- **NetworkTopologyManager**: Node registry, clusters, connections
-- **MessageRouter**: Priority-based routing, broadcast, direct messaging
-- **LoadBalancer**: Round-robin, least-loaded, capability-match strategies
-- **DistributedCellNetwork**: Task distribution, health checks, auto-rebalancing
-
-#### Real-Time Learning
-- **LearningEventBuffer**: Event queue with processing status
-- **AdaptiveRuleEngine**: Dynamic rule creation, pattern matching
-- **RealTimeLearningEngine**: Continuous learning, knowledge updates
-
-#### Multi-Modal Support
-- **TextProcessor**: Tokenization, language detection, sentiment
-- **ImageProcessor**: Format detection, brightness, colors
-- **AudioProcessor**: Duration, speech detection, volume
-- **CodeProcessor**: Language detection, complexity, structure
-- **ModalityFusionEngine**: Cross-modal attention, embedding fusion
+- Custom tools
+- Commands
+- Memory adapters
+- Event handlers
+- UI components
 
 ---
 
-## 🏁 Quick Start (2 Clicks!)
+## 🏗️ Architecture
 
-### Option 1: Shell Script
+```
+src/
+├── core/
+│   ├── KaiAgent.ts         # Main agent class
+│   ├── Cell.ts             # Cell-based processing
+│   └── TreeOfThoughts.ts   # Reasoning engine
+├── tools/
+│   ├── Tool.ts             # Tool infrastructure
+│   ├── BashTool.ts         # Shell execution
+│   ├── FileEditTool.ts     # File editing
+│   ├── FileReadTool.ts     # File reading
+│   ├── GlobTool.ts         # File pattern matching
+│   ├── GrepTool.ts         # Content search
+│   ├── WebSearchTool.ts    # Web search
+│   ├── WebFetchTool.ts     # Web content fetch
+│   ├── NotebookEditTool.ts # Jupyter notebook editing
+│   ├── TaskTool.ts         # Subtask management
+│   └── StopTool.ts         # Execution control
+├── commands/
+│   ├── Command.ts          # Command infrastructure
+│   ├── general.ts          # General commands
+│   ├── file.ts             # File commands
+│   ├── memory.ts           # Memory commands
+│   └── ai.ts               # AI commands
+├── memory/
+│   ├── MemorySystem.ts     # Core memory system
+│   ├── VectorMemory.ts     # Semantic search
+│   └── WorkingMemory.ts    # Active memory
+├── query/
+│   └── QueryEngine.ts      # Query processing
+├── bridge/
+│   ├── BridgeManager.ts    # Bridge management
+│   └── index.ts            # Bridge exports
+├── plugins/
+│   ├── PluginManager.ts    # Plugin management
+│   └── index.ts            # Plugin exports
+└── index.ts                # Main exports
+```
+
+---
+
+## 📦 Installation
+
 ```bash
+# Clone the repository
 git clone https://github.com/luokai0/kai-agent.git
 cd kai-agent
-./start.sh
-```
 
-### Option 2: Batch File (Windows)
-```batch
-start.bat
-```
+# Install dependencies
+npm install
 
-### Option 3: Direct Bun
-```bash
-bun install
-bun start
-```
+# Build
+npm run build
 
-**Web Interface**: http://localhost:3000
+# Run tests
+npm test
 
----
-
-## 📁 Project Structure
-
-```
-kai-agent/
-├── src/
-│   ├── neural/              # Phase 1: Neural network foundation
-│   │   ├── tensor.ts        # Tensor operations
-│   │   ├── layer.ts         # Neural layers
-│   │   ├── network.ts       # Network architecture
-│   │   ├── activations.ts   # Activation functions
-│   │   ├── loss.ts          # Loss functions
-│   │   └── optimizers.ts    # Optimizers (SGD, Adam)
-│   │
-│   ├── memory/              # Phase 1: Memory brain system
-│   │   ├── embedding.ts     # Vector embeddings
-│   │   ├── bank.ts          # Memory banks
-│   │   ├── vector.ts        # Vector store
-│   │   └── system.ts        # Memory system
-│   │
-│   ├── thoughts/            # Phase 1: Tree of Thoughts engine
-│   │   ├── tree.ts          # Thought tree
-│   │   └── reasoning.ts     # Reasoning engine
-│   │
-│   ├── cells/              # Phase 1-2: Cell-based architecture
-│   │   ├── cell.ts          # Cell base class
-│   │   ├── network.ts       # Cell network
-│   │   ├── SecurityCell.ts  # Security specialist
-│   │   ├── AlgorithmCell.ts # Algorithm specialist
-│   │   ├── TestingCell.ts   # Testing specialist
-│   │   ├── DevOpsCell.ts    # DevOps specialist
-│   │   └── DatabaseCell.ts  # Database specialist
-│   │
-│   ├── knowledge/          # Phase 2: Knowledge system
-│   │   ├── base.ts          # Knowledge base
-│   │   └── huggingface.ts   # HuggingFace integration
-│   │
-│   ├── learning/           # Phase 2-3: Learning system
-│   │   ├── LearningEngine.ts    # Pattern-based learning
-│   │   └── RealTimeLearning.ts # Real-time adaptation
-│   │
-│   ├── self-improvement/   # Phase 3: Self-improvement
-│   │   └── SelfImprovement.ts  # Meta-learning engine
-│   │
-│   ├── distributed/        # Phase 3: Distributed network
-│   │   └── DistributedNetwork.ts # Cell network distribution
-│   │
-│   ├── multimodal/         # Phase 3: Multi-modal support
-│   │   └── MultimodalSupport.ts # Text/Image/Audio/Code
-│   │
-│   ├── web/                # Phase 2: Web interface
-│   │   ├── server.ts       # Express server
-│   │   └── ui.html         # Dashboard UI
-│   │
-│   ├── core/               # Core agent
-│   │   └── agent.ts       # Main Kai Agent
-│   │
-│   ├── cli/                # Command-line interface
-│   │   └── index.ts        # CLI entry point
-│   │
-│   ├── types/              # TypeScript types
-│   │   └── index.ts        # Type definitions
-│   │
-│   └── utils/              # Utilities
-│       └── index.ts        # Helper functions
-│
-├── dist/                   # Compiled JavaScript
-├── start.sh                # Linux/Mac startup
-├── start.bat               # Windows startup
-├── test.ts                 # Test script
-├── package.json            # Package configuration
-└── tsconfig.json           # TypeScript configuration
+# Start
+npm start
 ```
 
 ---
 
-## 📊 Statistics
+## 🔧 Usage
 
-| Metric | Value |
-|--------|-------|
-| Total Files | 1,000+ |
-| Source Lines | 850,000+ |
-| TypeScript Modules | 30+ |
-| Neural Layers | 5+ |
-| Activation Functions | 6+ |
-| Cell Types | 10+ |
-| Knowledge Items | 100+ |
-| API Endpoints | 10+ |
+### Basic Usage
 
----
-
-## 🔧 Technical Details
-
-### Tensor Operations
 ```typescript
-const tensor = Tensor.zeros([3, 4]);        // Create 3x4 tensor
-const reshaped = tensor.reshape([4, 3]);    // Reshape
-const result = tensor.add(otherTensor);     // Element-wise add
-const dot = tensor.dot(otherTensor);        // Matrix multiplication
+import { KaiAgent } from 'kai-agent'
+
+// Create agent
+const agent = new KaiAgent()
+
+// Process a query
+const response = await agent.query('Explain quantum computing')
+console.log(response)
 ```
 
-### Neural Network
-```typescript
-const network = new NeuralNetwork([
-  new DenseLayer(784, 128, 'relu'),
-  new DenseLayer(128, 64, 'relu'),
-  new DenseLayer(64, 10, 'softmax')
-]);
-network.compile('adam', 'cross-entropy');
-```
+### Tree of Thoughts Reasoning
 
-### Tree of Thoughts
 ```typescript
-const tree = new ThoughtTree('Solve the problem');
-tree.addThought('root', 'Analyze inputs', 'analysis');
-tree.addThought('root', 'Consider edge cases', 'exploration');
-const bestPath = tree.getBestPath();
+import { TreeOfThoughts } from 'kai-agent'
+
+const tot = new TreeOfThoughts({
+  maxDepth: 4,
+  branchingFactor: 3,
+  evaluationMethod: 'value',
+})
+
+const result = await tot.solve('How to reduce carbon emissions?')
+console.log(result.bestPath)
 ```
 
 ### Memory System
+
 ```typescript
-const memory = new MemorySystem();
-memory.addShortTerm('key', { data: 'value' });
-memory.addLongTerm('fact', 'The sky is blue');
-const recalled = memory.recallShortTerm('key');
+import { VectorMemory } from 'kai-agent'
+
+const memory = new VectorMemory()
+
+// Store with embedding
+await memory.storeWithEmbedding('TypeScript is a typed superset of JavaScript', 'long', {
+  tags: ['programming', 'typescript'],
+  importance: 8,
+})
+
+// Search by similarity
+const results = await memory.searchBySimilarity('JavaScript variants')
+console.log(results)
 ```
 
-### Cell Network
+### Tool Usage
+
 ```typescript
-const network = new CellNetwork();
-network.registerCell(new CodingCell('coder-1'));
-network.registerCell(new SecurityCell('sec-1'));
-const result = network.processQuery('How to secure API?');
+import { BashTool, GlobTool, GrepTool } from 'kai-agent'
+
+// Execute bash command
+const bashResult = await BashTool.call({ command: 'ls -la' })
+
+// Find files
+const files = await GlobTool.call({ patterns: ['**/*.ts'] })
+
+// Search content
+const matches = await GrepTool.call({ pattern: 'TODO', path: './src' })
 ```
 
-### Self-Improvement
+### Commands
+
 ```typescript
-const improvement = new SelfImprovementEngine();
-improvement.startImprovementCycle();
-const optimizations = improvement.getOptimizations();
+import { processCommand } from 'kai-agent'
+
+// Execute command
+const result = await processCommand('/think How to optimize this code?')
+console.log(result.display)
 ```
 
-### Distributed Network
+### Bridge Integration
+
 ```typescript
-const distributed = new DistributedCellNetwork();
-distributed.addNode({ id: 'node-1', capabilities: ['security'] });
-distributed.distributeTask(task);
+import { createIDEBridge, createAPIBridge } from 'kai-agent'
+
+// IDE bridge
+const ideBridge = createIDEBridge(8765)
+await ideBridge.start()
+
+// API bridge
+const apiBridge = createAPIBridge(3000)
+await apiBridge.start()
+```
+
+### Plugin System
+
+```typescript
+import { PluginManager } from 'kai-agent'
+
+const pluginManager = new PluginManager(['./plugins'])
+const plugins = pluginManager.scan()
+
+for (const plugin of plugins) {
+  await pluginManager.load(plugin)
+  await pluginManager.enable(plugin.id)
+}
 ```
 
 ---
 
-## 🧪 Testing
+## 📚 API Reference
 
-Run the test script:
-```bash
-bun test.ts
+### KaiAgent
+
+```typescript
+class KaiAgent {
+  constructor(config?: KaiAgentConfig)
+  
+  query(prompt: string): Promise<string>
+  stream(prompt: string): AsyncGenerator<string>
+  
+  getMemory(): MemorySystem
+  getTools(): Tool[]
+  getCommands(): Command[]
+  
+  registerTool(tool: Tool): void
+  registerCommand(command: Command): void
+  registerPlugin(plugin: Plugin): void
+}
 ```
 
-Expected output:
-```
-Creating Kai Agent...
-Initializing...
-✓ Neural network initialized
-✓ Memory system initialized
-✓ Knowledge ingested
-✓ Cells activated
-✓ Self-improvement started
-✓ Distributed network ready
-✓ Multi-modal support enabled
+### TreeOfThoughts
 
-Querying: "What is SQL injection?"
-✓ Thought tree generated
-✓ Best path selected
-✓ Response synthesized
-
-SUCCESS! Kai Agent is working.
+```typescript
+class TreeOfThoughts {
+  constructor(config?: ToTConfig)
+  
+  solve(problem: string): Promise<ToTResult>
+  
+  explore(node: ToTNode): Promise<ToTNode[]>
+  evaluate(node: ToTNode): Promise<number>
+  backtrace(): ToTNode[]
+}
 ```
 
----
+### MemorySystem
 
-## 📦 Dependencies
-
-- **Bun** - JavaScript runtime
-- **TypeScript** - Type safety
-- **better-sqlite3** - SQLite database
-- **uuid** - Unique identifiers
-- **chalk** - Terminal colors
-- **express** - Web server
-
----
-
-## 🔮 Roadmap
-
-### Phase 1 ✅ COMPLETE
-- [x] Neural network foundation
-- [x] Memory brain system
-- [x] Tree of Thoughts engine
-- [x] Cell-based architecture
-- [x] Knowledge base with coding/security data
-- [x] CLI for 2-click startup
-
-### Phase 2 ✅ COMPLETE
-- [x] Expand knowledge base (100+ items)
-- [x] Add specialized cell types
-- [x] Implement learning from interactions
-- [x] Add web interface with REST API
-
-### Phase 3 ✅ COMPLETE
-- [x] Self-improvement mechanisms
-- [x] Distributed cell network
-- [x] Real-time learning
-- [x] Multi-modal support
-
-### Phase 4 ✅ COMPLETE
-- [x] **Advanced Neural Architectures**
-  - Transformer implementation (attention mechanism)
-  - LSTM/GRU for sequence processing
-  - Convolutional layers for pattern recognition
+```typescript
+class MemorySystem {
+  store(content: string, type?: MemoryType, options?: StoreOptions): MemoryEntry
+  retrieve(id: string): MemoryEntry | undefined
+  search(query: string, options?: SearchOptions): MemoryEntry[]
+  forget(id: string): boolean
+  clear(): void
   
-- [x] **Deep Knowledge Expansion**
-  - Ingest 1000+ coding patterns from HuggingFace
-  - Security vulnerability database (CVE data)
-  - Algorithm complexity analysis
-  
-- [x] **Agent Personality System**
-  - Configurable personality traits
-  - Response style adaptation
-  - Context-aware tone adjustment
-  
-- [x] **Plugin System**
-  - External tool integration
-  - Custom cell creation API
-  - Third-party knowledge sources
-  
-- [x] **Performance Optimization**
-  - GPU acceleration support
-  - Model quantization
-  - Inference caching
-  
-- [x] **Security Hardening**
-  - Input validation
-  - Output sanitization
-  - Access control for API
+  stats(): MemoryStats
+  save(): void
+  load(): void
+}
+```
 
-### Phase 5 🔮 FUTURE
-- [ ] Voice interface
-- [ ] Mobile companion app
-- [ ] Cloud deployment option
-- [ ] Multi-language support
-- [ ] Collaboration features
+### Tools
+
+```typescript
+interface Tool {
+  name: string
+  description: string
+  inputSchema: ZodSchema
+  outputSchema: ZodSchema
+  
+  call(input: any, context?: any): Promise<ToolResult>
+  checkPermissions(input: any): Promise<PermissionResult>
+}
+```
 
 ---
 
-## 👤 Author
+## 🔬 Technical Details
 
-**luokai** (kai)
+### Statistics
 
-Built with ❤️ by **Zo AI**
+| Metric | Value |
+|--------|-------|
+| TypeScript Files | 88 |
+| Lines of Code | 39,172 |
+| Tools | 10 |
+| Commands | 30+ |
+| Memory Types | 5 |
+| Bridge Types | 3 |
 
----
+### Dependencies
 
-## 📄 License
-
-MIT License - Feel free to use, modify, and distribute.
+| Package | Purpose |
+|---------|---------|
+| `typescript` | Language |
+| `zod` | Schema validation |
+| `cheerio` | HTML parsing |
+| `ws` | WebSocket support |
 
 ---
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please feel free to submit issues and pull requests.
+Contributions are welcome! Please read our [Contributing Guide](CONTRIBUTING.md) for details.
+
+### Development Setup
+
+```bash
+# Install dependencies
+npm install
+
+# Run in development
+npm run dev
+
+# Build
+npm run build
+
+# Test
+npm test
+
+# Lint
+npm run lint
+```
 
 ---
 
-## 📈 Recent Commits
+## 📄 License
 
-| Phase | Commit | Description |
-|-------|--------|-------------|
-| Phase 1 | `811b1f5` | Core neural, memory, ToT, cells |
-| Phase 2 | `a2b3c4d` | Knowledge, specialized cells, web UI |
-| Phase 3 | `173062f` | Self-improvement, distributed, multi-modal |
+MIT License - see [LICENSE](LICENSE) for details.
 
 ---
 
-**Last Updated**: 2026-04-19  
-**Version**: 3.0.0  
-**Status**: Production Ready
+## 🙏 Acknowledgments
+
+- Based on Claude Code architecture patterns
+- Tree of Thoughts reasoning framework
+- Cognitive science memory models
+- Open source community
+
+---
+
+<div align="center">
+
+**Built with ❤️ by Kai**
+
+[⬆ Back to Top](#-kai-agent---neural-ai-brain)
+
+</div>
