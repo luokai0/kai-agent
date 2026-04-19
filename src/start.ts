@@ -1,100 +1,154 @@
-#!/usr/bin/env node
 /**
- * Kai Agent - Quick Start CLI
- * Run with: bun run start
- * Or: npx tsx src/start.ts
+ * Kai Agent - Start Script
+ * 
+ * Start the Kai Agent with trained neural brain
  */
 
-import { KaiAgent } from './agent/KaiAgent.js';
+import * as fs from 'fs';
+import * as path from 'path';
+import { createInterface } from 'readline';
+import { KaiBrain } from './brain/KaiBrain';
+import { NeuralEngine } from './neural/NeuralEngine';
+import { MemoryBrain } from './memory/MemoryBrain';
+import { TreeOfThoughts } from './thoughts/TreeOfThoughts';
+import { CellArchitecture } from './cells/CellArchitecture';
 
-const DATA_DIR = process.env.KAI_DATA_DIR || './data/kai-agent';
+// ============================================================================
+// KAI AGENT STARTUP
+// ============================================================================
 
-async function main() {
-  console.log('');
-  console.log('╔══════════════════════════════════════════╗');
-  console.log('║         🤖 KAI AGENT - AI BRAIN          ║');
-  console.log('║   Neural AI with Real Embeddings        ║');
-  console.log('╚══════════════════════════════════════════╝');
-  console.log('');
+async function start() {
+  console.log(`
+╔══════════════════════════════════════════════════════════════════════╗
+║                                                                      ║
+║    █████╗ ██╗██████╗  ██████╗ ██╗  ██╗                               ║
+║   ██╔══██╗██║██╔══██╗██╔═══██╗╚██╗██╔╝                               ║
+║   ███████║██║██████╔╝██║   ██║ ╚███╔╝                                ║
+║   ██╔══██║██║██╔══██╗██║   ██║ ██╔██╗                                ║
+║   ██║  ██║██║██║  ██║╚██████╔╝██╔╝ ██╗                               ║
+║   ╚═╝  ╚═╝╚═╝╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝                               ║
+║                                                                      ║
+║              🧠 NEURAL AI BRAIN 🧠                                  ║
+║                                                                      ║
+║    Memory Brain + Tree of Thoughts + Cell Architecture              ║
+║    393,000+ HuggingFace Coding & Security Samples                   ║
+║                                                                      ║
+╚══════════════════════════════════════════════════════════════════════╝
+`);
 
-  // Create Kai Agent
-  const agent = new KaiAgent({
-    dataDir: DATA_DIR,
-    embeddingModel: 'Xenova/all-MiniLM-L6-v2',
-    maxMemory: 10000
+  // Find weights file
+  const weightsDir = './weights';
+  let weightsFile = '';
+  
+  if (fs.existsSync(weightsDir)) {
+    const files = fs.readdirSync(weightsDir)
+      .filter(f => f.endsWith('.weights') || f.includes('kai-brain-final'))
+      .sort()
+      .reverse();
+    
+    if (files.length > 0) {
+      weightsFile = path.join(weightsDir, files[0]);
+    }
+  }
+
+  // Initialize Kai Brain
+  const brain = new KaiBrain({
+    weightsPath: weightsFile,
+    enableTreeOfThoughts: true,
+    enableMemoryCells: true,
+    maxThoughts: 50
   });
 
-  try {
-    // Initialize
-    await agent.initialize();
+  // Load brain
+  const loaded = await brain.load();
+  
+  if (!loaded) {
+    console.log('\n⚠️ Brain not trained yet.');
+    console.log('   Run training first: bun run train.ts');
+    console.log('   Or use the neural engine directly.\n');
+  }
 
-    // Ingest knowledge
-    console.log('\n📥 Ingesting knowledge from HuggingFace...');
-    const ingestResult = await agent.ingestFromHuggingFace({
-      maxSamples: 50000
-    });
-    
-    console.log(`\n✅ Knowledge base ready with ${ingestResult.total} items`);
+  // Initialize other components
+  const neuralEngine = new NeuralEngine('./data/neural');
+  const memoryBrain = new MemoryBrain();
+  const treeOfThoughts = new TreeOfThoughts();
+  const cells = new CellArchitecture();
 
-    // Interactive mode
-    console.log('\n🎯 Kai Agent is ready!');
-    console.log('Type your question and press Enter. Type "exit" to quit.\n');
+  console.log('✅ Kai Agent Initialized');
+  console.log('─'.repeat(60));
+  console.log(`   Brain Status: ${loaded ? 'Trained & Ready' : 'Needs Training'}`);
+  console.log(`   Memory Cells: Enabled`);
+  console.log(`   Tree of Thoughts: Enabled`);
+  console.log(`   Cell Architecture: Active`);
+  console.log('─'.repeat(60));
 
-    const readline = await import('readline');
-    const rl = readline.createInterface({
-      input: process.stdin,
-      output: process.stdout
-    });
+  // Interactive mode
+  const rl = createInterface({
+    input: process.stdin,
+    output: process.stdout
+  });
 
-    const prompt = (query: string): Promise<string> => {
-      return new Promise(resolve => {
-        rl.question(query, resolve);
-      });
-    };
+  console.log('\n🎯 Kai Agent Ready');
+  console.log('   Type your query (coding or security questions)');
+  console.log('   Type "exit" to quit\n');
 
-    // Main loop
-    while (true) {
-      const input = await prompt('> ');
-      
+  const ask = () => {
+    rl.question('kai> ', async (input) => {
       if (input.trim().toLowerCase() === 'exit') {
-        break;
+        console.log('\n👋 Goodbye!\n');
+        rl.close();
+        return;
       }
 
-      if (input.trim().toLowerCase() === 'status') {
-        agent.printStatus();
-        continue;
+      if (!input.trim()) {
+        ask();
+        return;
       }
-
-      if (input.trim().toLowerCase() === 'help') {
-        console.log('\nCommands:');
-        console.log('  <question>  - Ask Kai Agent anything');
-        console.log('  status      - Show agent status');
-        console.log('  exit        - Quit Kai Agent');
-        continue;
-      }
-
-      if (!input.trim()) continue;
 
       try {
-        const result = await agent.query(input);
-        console.log('\n' + result.response);
-        console.log(`\n[Confidence: ${(result.confidence * 100).toFixed(1)}%}]`);
-        console.log(`[Sources: ${result.sources.join(', ') || 'none'}]`);
-        console.log(`[Time: ${result.processingTime}ms]\n`);
-      } catch (error) {
-        console.error('\n❌ Error:', error);
-      }
-    }
+        // Process through brain
+        const startTime = Date.now();
+        
+        const response = await brain.process(input);
+        
+        const duration = Date.now() - startTime;
+        
+        console.log('\n┌─────────────────────────────────────────────────┐');
+        console.log('│ Response                                        │');
+        console.log('├─────────────────────────────────────────────────┤');
+        console.log(`│ Category: ${response.category.padEnd(36)}│`);
+        console.log(`│ Confidence: ${(response.confidence * 100).toFixed(1)}%`.padEnd(47) + '│');
+        console.log('├─────────────────────────────────────────────────┤');
+        console.log('│ ' + response.text.substring(0, 47).padEnd(47) + '│');
+        if (response.text.length > 47) {
+          const remaining = response.text.substring(47);
+          for (let i = 0; i < remaining.length; i += 47) {
+            console.log('│ ' + remaining.substring(i, i + 47).padEnd(47) + '│');
+          }
+        }
+        
+        if (response.reasoning && response.reasoning.length > 0) {
+          console.log('├─────────────────────────────────────────────────┤');
+          console.log('│ Reasoning Path:                                 │');
+          response.reasoning.slice(0, 3).forEach((r, i) => {
+            console.log(`│   ${i + 1}. ${r.substring(0, 42).padEnd(42)}│`);
+          });
+        }
+        
+        console.log('├─────────────────────────────────────────────────┤');
+        console.log(`│ Processed in ${duration}ms`.padEnd(47) + '│');
+        console.log('└─────────────────────────────────────────────────┘\n');
 
-    rl.close();
-    agent.close();
-    
-    console.log('\n👋 Thanks for using Kai Agent!\n');
-  } catch (error) {
-    console.error('\n❌ Fatal error:', error);
-    process.exit(1);
-  }
+      } catch (error) {
+        console.error('\n❌ Error:', error, '\n');
+      }
+
+      ask();
+    });
+  };
+
+  ask();
 }
 
 // Run
-main().catch(console.error);
+start().catch(console.error);
