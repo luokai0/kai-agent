@@ -1,20 +1,21 @@
 {
   "name": "kai-agent",
   "version": "1.0.0",
-  "description": "Neural AI Brain with Memory, Tree of Thoughts, and Cell Architecture",
+  "description": "Neural AI Brain with Real Embeddings, Tree of Thoughts, and HuggingFace Knowledge",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
     "kai": "./dist/cli/start.js"
   },
   "scripts": {
+    "start": "npx tsx src/start.ts",
+    "dev": "npx tsx src/start.ts",
     "build": "tsc",
-    "start": "npx tsx src/cli/start.ts",
-    "dev": "npx tsx src/cli/start.ts",
     "train": "npx tsx src/training/train.ts",
     "ingest": "npx tsx src/ingestion/ingest.ts",
     "test": "node --test dist/**/*.test.js",
-    "cli": "npx tsx src/cli/start.ts"
+    "cli": "npx tsx src/cli/start.ts",
+    "repl": "npx tsx src/start.ts"
   },
   "keywords": [
     "neural-network",
@@ -23,11 +24,16 @@
     "memory",
     "tree-of-thoughts",
     "cybersecurity",
-    "coding"
+    "coding",
+    "embeddings",
+    "bert",
+    "huggingface"
   ],
   "dependencies": {
+    "@xenova/transformers": "^2.17.2",
     "better-sqlite3": "^11.0.0",
     "chalk": "^5.3.0",
+    "onnxruntime-node": "^1.24.3",
     "uuid": "^10.0.0"
   },
   "devDependencies": {

@@ -269,7 +269,7 @@ export class ReasoningTree {
       criteria.relevance * weights.relevance +
       criteria.coherence * weights.coherence +
       criteria.completeness * weights.completeness +
-      criteria.validity * weights.validness +
+      criteria.validity * weights.validity +
       criteria.novelty * weights.novelty;
     
     // Add exploration bonus
