@@ -1,7 +1,5 @@
-// =============================================================================
-// KAI AGENT - KNOWLEDGE MODULE EXPORTS
-// =============================================================================
+/**
+ * Knowledge Module Index
+ */
 
-export * from './base.js';
-export * from './huggingface.js';
-
+export * from './ingestion';
