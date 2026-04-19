@@ -168,8 +168,9 @@ export class PerformanceTracker extends EventEmitter {
     if (options?.category) {
       filtered = filtered.filter(m => m.category === options.category);
     }
-    if (options?.since) {
-      filtered = filtered.filter(m => m.timestamp >= options.since);
+    const sinceDate = options?.since;
+    if (sinceDate) {
+      filtered = filtered.filter(m => m.timestamp >= sinceDate);
     }
     if (options?.successOnly) {
       filtered = filtered.filter(m => m.success);
@@ -419,8 +420,9 @@ export class WeaknessAnalyzer {
     if (options?.category) {
       filtered = filtered.filter(p => p.category === options.category);
     }
-    if (options?.minImpact) {
-      filtered = filtered.filter(p => p.impact >= options.minImpact);
+    const minImpactValue = options?.minImpact;
+    if (minImpactValue !== undefined) {
+      filtered = filtered.filter(p => p.impact >= minImpactValue);
     }
 
     return filtered.sort((a, b) => b.impact - a.impact);

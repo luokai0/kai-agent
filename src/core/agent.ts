@@ -16,6 +16,7 @@ import type {
 } from '../types/index.js';
 import { NetworkImpl, TransformerNetwork, RecurrentNetwork } from '../neural/network.js';
 import { MemorySystemImpl } from '../memory/system.js';
+import { MemoryBrain } from '../memory/MemoryBrain.js';
 import { ReasoningEngineImpl } from '../thoughts/reasoning.js';
 import { CellNetworkImpl } from '../cells/network.js';
 import { KnowledgeBase } from '../knowledge/base.js';
@@ -42,6 +43,7 @@ export class KaiAgentImpl implements KaiAgent {
   version: string;
   brain: NeuralBrain;
   memory: MemorySystemImpl;
+  memoryBrain!: MemoryBrain;
   thoughts: ReasoningEngineImpl;
   cells: CellNetworkImpl;
   knowledge: KnowledgeGraph;
@@ -60,7 +62,7 @@ export class KaiAgentImpl implements KaiAgent {
   private trainer: SelfLearningTrainer;
   
   // Conversation engine
-  private conversation: ConversationEngine;
+  private conversation!: ConversationEngine;
 
   constructor(name: string = 'Kai') {
     this.id = uuidv4();
@@ -119,8 +121,7 @@ export class KaiAgentImpl implements KaiAgent {
       `${process.cwd()}/data/training`
     );
     
-    // Initialize conversation engine
-    this.conversation = new ConversationEngine(this.memory, this.brain as any);
+    // Conversation engine will be initialized in initialize() method
   }
 
   private initializeBrain(): NeuralBrain {
@@ -191,6 +192,10 @@ export class KaiAgentImpl implements KaiAgent {
   // Initialize agent with knowledge
   async initialize(): Promise<void> {
     console.log('Initializing Kai Agent...');
+    
+    // Initialize MemoryBrain for ConversationEngine
+    this.memoryBrain = new MemoryBrain(`${process.cwd()}/data/memory`);
+    await this.memoryBrain.initialize();
     
     // Ingest knowledge from HuggingFace (generated)
     console.log('Ingesting knowledge...');
@@ -663,7 +668,16 @@ export class KaiAgentImpl implements KaiAgent {
     errors?: string[];
     suggestions?: string[];
   }): string {
-    return this.selfImprovement.recordPerformance(metric);
+    return this.selfImprovement.recordPerformance({
+      category: metric.category,
+      success: metric.success,
+      duration: metric.duration,
+      complexity: metric.complexity,
+      outcome: metric.outcome,
+      context: metric.context || {},
+      errors: metric.errors || [],
+      suggestions: metric.suggestions || []
+    });
   }
 
   /**
@@ -677,7 +691,16 @@ export class KaiAgentImpl implements KaiAgent {
     correct: boolean;
     feedback?: string;
   }): string {
-    return this.selfImprovement.recordExperience(experience);
+    return this.selfImprovement.recordExperience({
+      input: experience.input,
+      expectedOutput: experience.expectedOutput,
+      actualOutput: experience.actualOutput,
+      category: experience.category,
+      correct: experience.correct,
+      learned: experience.correct,
+      improvementMade: false,
+      feedback: experience.feedback || ''
+    });
   }
 
   /**

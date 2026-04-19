@@ -1,0 +1,262 @@
+[
+  {
+    "input": "Write a function to reverse a string",
+    "expectedOutput": "function reverseString(str: string): string {\n  return str.split('').reverse().join('');\n}",
+    "category": "coding",
+    "difficulty": 2,
+    "tags": [
+      "string",
+      "manipulation",
+      "basic"
+    ],
+    "source": "validation",
+    "id": "example_1776556753206_2pud0j5hl",
+    "createdAt": "2026-04-18T23:59:13.206Z",
+    "timesUsed": 0,
+    "successRate": 0
+  },
+  {
+    "input": "Implement a binary search algorithm",
+    "expectedOutput": "function binarySearch(arr: number[], target: number): number {\n  let left = 0, right = arr.length - 1;\n  while (left <= right) {\n    const mid = Math.floor((left + right) / 2);\n    if (arr[mid] === target) return mid;\n    if (arr[mid] < target) left = mid + 1;\n    else right = mid - 1;\n  }\n  return -1;\n}",
+    "category": "coding",
+    "difficulty": 4,
+    "tags": [
+      "algorithm",
+      "search",
+      "binary"
+    ],
+    "source": "validation",
+    "id": "example_1776556753207_9xvm64vfw",
+    "createdAt": "2026-04-18T23:59:13.207Z",
+    "timesUsed": 0,
+    "successRate": 0
+  },
+  {
+    "input": "Create a REST API endpoint for user CRUD",
+    "expectedOutput": "app.get('/users', async (req, res) => {\n  const users = await User.findAll();\n  res.json(users);\n});\n\napp.post('/users', async (req, res) => {\n  const user = await User.create(req.body);\n  res.status(201).json(user);\n});",
+    "category": "coding",
+    "difficulty": 5,
+    "tags": [
+      "api",
+      "rest",
+      "crud",
+      "backend"
+    ],
+    "source": "validation",
+    "id": "example_1776556753207_zkkbdan9b",
+    "createdAt": "2026-04-18T23:59:13.207Z",
+    "timesUsed": 0,
+    "successRate": 0
+  },
+  {
+    "input": "Identify SQL injection vulnerability in: SELECT * FROM users WHERE id = ' + userId",
+    "expectedOutput": "SQL INJECTION DETECTED: Direct string concatenation of user input. Use parameterized queries instead: SELECT * FROM users WHERE id = ?",
+    "category": "security",
+    "difficulty": 3,
+    "tags": [
+      "sql-injection",
+      "vulnerability",
+      "database"
+    ],
+    "source": "validation",
+    "id": "example_1776556753207_7puffzmhm",
+    "createdAt": "2026-04-18T23:59:13.207Z",
+    "timesUsed": 0,
+    "successRate": 0
+  },
+  {
+    "input": "Analyze XSS risk: element.innerHTML = userInput",
+    "expectedOutput": "XSS VULNERABILITY: Direct assignment to innerHTML. Sanitize input or use textContent instead.",
+    "category": "security",
+    "difficulty": 3,
+    "tags": [
+      "xss",
+      "vulnerability",
+      "frontend"
+    ],
+    "source": "validation",
+    "id": "example_1776556753207_znam9sht6",
+    "createdAt": "2026-04-18T23:59:13.207Z",
+    "timesUsed": 0,
+    "successRate": 0
+  },
+  {
+    "input": "Review authentication: password stored in plain text",
+    "expectedOutput": "CRITICAL: Passwords must be hashed using bcrypt or argon2. Never store plain text passwords. Implement salt and proper key stretching.",
+    "category": "security",
+    "difficulty": 5,
+    "tags": [
+      "authentication",
+      "password",
+      "hashing",
+      "critical"
+    ],
+    "source": "validation",
+    "id": "example_1776556753207_xdjnd3n2s",
+    "createdAt": "2026-04-18T23:59:13.207Z",
+    "timesUsed": 0,
+    "successRate": 0
+  },
+  {
+    "input": "If A implies B, and B implies C, what does A imply?",
+    "expectedOutput": "By transitivity, A implies C. This is a valid logical deduction: (A→B) ∧ (B→C) ⊢ (A→C)",
+    "category": "reasoning",
+    "difficulty": 4,
+    "tags": [
+      "logic",
+      "transitivity",
+      "deduction"
+    ],
+    "source": "validation",
+    "id": "example_1776556753208_5f2oseeaw",
+    "createdAt": "2026-04-18T23:59:13.208Z",
+    "timesUsed": 0,
+    "successRate": 0
+  },
+  {
+    "input": "Debug: Code works in dev but fails in production",
+    "expectedOutput": "Potential causes: 1) Environment variables missing, 2) Database connection differences, 3) File path issues, 4) Memory constraints, 5) Network configuration. Check logs and compare environments.",
+    "category": "reasoning",
+    "difficulty": 6,
+    "tags": [
+      "debugging",
+      "environment",
+      "production"
+    ],
+    "source": "validation",
+    "id": "example_1776556753208_vq11khqb4",
+    "createdAt": "2026-04-18T23:59:13.208Z",
+    "timesUsed": 0,
+    "successRate": 0
+  },
+  {
+    "input": "Write a function to reverse a string",
+    "expectedOutput": "function reverseString(str: string): string {\n  return str.split('').reverse().join('');\n}",
+    "category": "coding",
+    "difficulty": 2,
+    "tags": [
+      "string",
+      "manipulation",
+      "basic"
+    ],
+    "source": "validation",
+    "id": "example_1776556974055_bi2bsqysx",
+    "createdAt": "2026-04-19T00:02:54.055Z",
+    "timesUsed": 0,
+    "successRate": 0
+  },
+  {
+    "input": "Implement a binary search algorithm",
+    "expectedOutput": "function binarySearch(arr: number[], target: number): number {\n  let left = 0, right = arr.length - 1;\n  while (left <= right) {\n    const mid = Math.floor((left + right) / 2);\n    if (arr[mid] === target) return mid;\n    if (arr[mid] < target) left = mid + 1;\n    else right = mid - 1;\n  }\n  return -1;\n}",
+    "category": "coding",
+    "difficulty": 4,
+    "tags": [
+      "algorithm",
+      "search",
+      "binary"
+    ],
+    "source": "validation",
+    "id": "example_1776556974056_9hpol6xfw",
+    "createdAt": "2026-04-19T00:02:54.056Z",
+    "timesUsed": 0,
+    "successRate": 0
+  },
+  {
+    "input": "Create a REST API endpoint for user CRUD",
+    "expectedOutput": "app.get('/users', async (req, res) => {\n  const users = await User.findAll();\n  res.json(users);\n});\n\napp.post('/users', async (req, res) => {\n  const user = await User.create(req.body);\n  res.status(201).json(user);\n});",
+    "category": "coding",
+    "difficulty": 5,
+    "tags": [
+      "api",
+      "rest",
+      "crud",
+      "backend"
+    ],
+    "source": "validation",
+    "id": "example_1776556974056_t0f78fnk0",
+    "createdAt": "2026-04-19T00:02:54.057Z",
+    "timesUsed": 0,
+    "successRate": 0
+  },
+  {
+    "input": "Identify SQL injection vulnerability in: SELECT * FROM users WHERE id = ' + userId",
+    "expectedOutput": "SQL INJECTION DETECTED: Direct string concatenation of user input. Use parameterized queries instead: SELECT * FROM users WHERE id = ?",
+    "category": "security",
+    "difficulty": 3,
+    "tags": [
+      "sql-injection",
+      "vulnerability",
+      "database"
+    ],
+    "source": "validation",
+    "id": "example_1776556974057_viuqxm3sq",
+    "createdAt": "2026-04-19T00:02:54.057Z",
+    "timesUsed": 0,
+    "successRate": 0
+  },
+  {
+    "input": "Analyze XSS risk: element.innerHTML = userInput",
+    "expectedOutput": "XSS VULNERABILITY: Direct assignment to innerHTML. Sanitize input or use textContent instead.",
+    "category": "security",
+    "difficulty": 3,
+    "tags": [
+      "xss",
+      "vulnerability",
+      "frontend"
+    ],
+    "source": "validation",
+    "id": "example_1776556974057_408i2mx27",
+    "createdAt": "2026-04-19T00:02:54.057Z",
+    "timesUsed": 0,
+    "successRate": 0
+  },
+  {
+    "input": "Review authentication: password stored in plain text",
+    "expectedOutput": "CRITICAL: Passwords must be hashed using bcrypt or argon2. Never store plain text passwords. Implement salt and proper key stretching.",
+    "category": "security",
+    "difficulty": 5,
+    "tags": [
+      "authentication",
+      "password",
+      "hashing",
+      "critical"
+    ],
+    "source": "validation",
+    "id": "example_1776556974057_wfrqs8vmi",
+    "createdAt": "2026-04-19T00:02:54.057Z",
+    "timesUsed": 0,
+    "successRate": 0
+  },
+  {
+    "input": "If A implies B, and B implies C, what does A imply?",
+    "expectedOutput": "By transitivity, A implies C. This is a valid logical deduction: (A→B) ∧ (B→C) ⊢ (A→C)",
+    "category": "reasoning",
+    "difficulty": 4,
+    "tags": [
+      "logic",
+      "transitivity",
+      "deduction"
+    ],
+    "source": "validation",
+    "id": "example_1776556974057_5dsoumo8f",
+    "createdAt": "2026-04-19T00:02:54.057Z",
+    "timesUsed": 0,
+    "successRate": 0
+  },
+  {
+    "input": "Debug: Code works in dev but fails in production",
+    "expectedOutput": "Potential causes: 1) Environment variables missing, 2) Database connection differences, 3) File path issues, 4) Memory constraints, 5) Network configuration. Check logs and compare environments.",
+    "category": "reasoning",
+    "difficulty": 6,
+    "tags": [
+      "debugging",
+      "environment",
+      "production"
+    ],
+    "source": "validation",
+    "id": "example_1776556974058_5de9o8lyq",
+    "createdAt": "2026-04-19T00:02:54.058Z",
+    "timesUsed": 0,
+    "successRate": 0
+  }
+]

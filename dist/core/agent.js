@@ -7,11 +7,15 @@ exports.KaiAgentImpl = void 0;
 const uuid_1 = require("uuid");
 const network_js_1 = require("../neural/network.js");
 const system_js_1 = require("../memory/system.js");
+const MemoryBrain_js_1 = require("../memory/MemoryBrain.js");
 const reasoning_js_1 = require("../thoughts/reasoning.js");
 const network_js_2 = require("../cells/network.js");
 const base_js_1 = require("../knowledge/base.js");
 const huggingface_js_1 = require("../knowledge/huggingface.js");
 const embedding_js_1 = require("../memory/embedding.js");
+const SelfImprovementEngine_js_1 = require("../self-improvement/SelfImprovementEngine.js");
+const SelfLearningTrainer_js_1 = require("../self-improvement/SelfLearningTrainer.js");
+const ConversationEngine_js_1 = require("../conversation/ConversationEngine.js");
 const VERSION = '1.0.0';
 const EMBEDDING_DIM = 768;
 class KaiAgentImpl {
@@ -20,6 +24,7 @@ class KaiAgentImpl {
     version;
     brain;
     memory;
+    memoryBrain;
     thoughts;
     cells;
     knowledge;
@@ -31,6 +36,11 @@ class KaiAgentImpl {
     actionHistory;
     initialized;
     knowledgeBase;
+    // Self-improvement components
+    selfImprovement;
+    trainer;
+    // Conversation engine
+    conversation;
     constructor(name = 'Kai') {
         this.id = (0, uuid_1.v4)();
         this.name = name;
@@ -64,6 +74,11 @@ class KaiAgentImpl {
         this.huggingFaceIngestor = new huggingface_js_1.HuggingFaceIngestor(this.knowledgeBase);
         // Action history
         this.actionHistory = [];
+        // Initialize self-improvement engine
+        this.selfImprovement = new SelfImprovementEngine_js_1.SelfImprovementEngine(process.cwd(), `${process.cwd()}/data/self-improvement`);
+        // Initialize trainer (will connect to neural engine after initialization)
+        this.trainer = new SelfLearningTrainer_js_1.SelfLearningTrainer(this.selfImprovement, undefined, undefined, `${process.cwd()}/data/training`);
+        // Conversation engine will be initialized in initialize() method
     }
     initializeBrain() {
         const networks = new Map();
@@ -128,6 +143,9 @@ class KaiAgentImpl {
     // Initialize agent with knowledge
     async initialize() {
         console.log('Initializing Kai Agent...');
+        // Initialize MemoryBrain for ConversationEngine
+        this.memoryBrain = new MemoryBrain_js_1.MemoryBrain(`${process.cwd()}/data/memory`);
+        await this.memoryBrain.initialize();
         // Ingest knowledge from HuggingFace (generated)
         console.log('Ingesting knowledge...');
         const stats = this.huggingFaceIngestor.ingestAll();
@@ -163,8 +181,16 @@ class KaiAgentImpl {
             // Step 1: Embed input
             const inputEmbedding = this.embeddingEngine.embed(input);
             this.state.context = inputEmbedding;
-            // Step 2: Query knowledge base
-            const relevantKnowledge = this.knowledgeBase.query(input, 5);
+            // Step 1.5: Detect domain and query with domain preference
+            const detectedDomains = this.detectDomains(input);
+            // Step 2: Query knowledge base with domain preference
+            let relevantKnowledge = detectedDomains.length > 0
+                ? this.knowledgeBase.query(input, 10, detectedDomains)
+                : this.knowledgeBase.query(input, 5);
+            // If no results with domain filter, try without
+            if (relevantKnowledge.length === 0) {
+                relevantKnowledge = this.knowledgeBase.query(input, 10);
+            }
             // Step 3: Query memory
             const relevantMemories = this.memory.query(input, 5);
             // Step 4: Process through cell network
@@ -248,6 +274,30 @@ class KaiAgentImpl {
     isSecurityRelated(input) {
         const securityKeywords = ['security', 'vulnerability', 'attack', 'exploit', 'hack', 'secure', 'encrypt', 'password', 'injection', 'xss', 'csrf'];
         return securityKeywords.some(kw => input.toLowerCase().includes(kw));
+    }
+    // Detect domains from input for better knowledge matching
+    detectDomains(input) {
+        const domains = [];
+        const lower = input.toLowerCase();
+        // Security-related keywords
+        const securityKeywords = [
+            'sql injection', 'xss', 'csrf', 'vulnerability', 'exploit', 'hack',
+            'security', 'attack', 'encrypt', 'decrypt', 'password', 'hash',
+            'penetration', 'malware', 'ransomware', 'firewall', 'cipher'
+        ];
+        if (securityKeywords.some(kw => lower.includes(kw))) {
+            domains.push('vulnerabilities', 'cybersecurity', 'defenses', 'tools', 'exploits');
+        }
+        // Coding keywords
+        const codingKeywords = [
+            'code', 'function', 'class', 'method', 'algorithm', 'variable',
+            'python', 'javascript', 'typescript', 'java', 'rust', 'go',
+            'debug', 'error', 'exception', 'implement', 'refactor'
+        ];
+        if (codingKeywords.some(kw => lower.includes(kw))) {
+            domains.push('patterns', 'algorithms', 'data_structures', 'languages', 'coding');
+        }
+        return domains;
     }
     synthesizeCodeResponse(input, knowledge, cellResults) {
         const codeKnowledge = knowledge.filter(k => ['coding', 'patterns', 'algorithms', 'data_structures', 'languages'].includes(k.domain));
@@ -373,6 +423,221 @@ class KaiAgentImpl {
             created: this.created,
             lastActive: this.lastActive
         };
+    }
+    // -------------------------------------------------------------------------
+    // SELF-IMPROVEMENT METHODS
+    // -------------------------------------------------------------------------
+    /**
+     * Run a self-improvement cycle
+     */
+    async improve() {
+        return await this.selfImprovement.runCycle();
+    }
+    /**
+     * Start continuous self-improvement
+     */
+    startSelfImprovement(intervalMs = 60 * 60 * 1000) {
+        this.selfImprovement.startContinuous(intervalMs);
+    }
+    /**
+     * Stop continuous self-improvement
+     */
+    stopSelfImprovement() {
+        this.selfImprovement.stopContinuous();
+    }
+    /**
+     * Get self-improvement status
+     */
+    getImprovementStatus() {
+        return this.selfImprovement.getStatus();
+    }
+    /**
+     * Generate self-improvement report
+     */
+    generateImprovementReport() {
+        return this.selfImprovement.generateReport();
+    }
+    /**
+     * Start a training session
+     */
+    async train(durationMs = 60 * 60 * 1000) {
+        return await this.trainer.startSession(durationMs);
+    }
+    /**
+     * Practice a specific task
+     */
+    async practice(category, difficulty) {
+        return await this.trainer.practice(category, difficulty);
+    }
+    /**
+     * Validate current performance
+     */
+    async validate(count = 10) {
+        return await this.trainer.validate(count);
+    }
+    /**
+     * Record performance metric for self-improvement
+     */
+    recordPerformance(metric) {
+        return this.selfImprovement.recordPerformance({
+            category: metric.category,
+            success: metric.success,
+            duration: metric.duration,
+            complexity: metric.complexity,
+            outcome: metric.outcome,
+            context: metric.context || {},
+            errors: metric.errors || [],
+            suggestions: metric.suggestions || []
+        });
+    }
+    /**
+     * Record learning experience
+     */
+    recordExperience(experience) {
+        return this.selfImprovement.recordExperience({
+            input: experience.input,
+            expectedOutput: experience.expectedOutput,
+            actualOutput: experience.actualOutput,
+            category: experience.category,
+            correct: experience.correct,
+            learned: experience.correct,
+            improvementMade: false,
+            feedback: experience.feedback || ''
+        });
+    }
+    /**
+     * Get trainer status
+     */
+    getTrainingStatus() {
+        return this.trainer.getStatus();
+    }
+    // -------------------------------------------------------------------------
+    // CONVERSATION METHODS
+    // -------------------------------------------------------------------------
+    /**
+     * Start a conversation session
+     */
+    async startConversation(options) {
+        return await this.conversation.startSession(options);
+    }
+    /**
+     * Chat with the agent
+     */
+    async chat(message, options) {
+        return await this.conversation.chat(message, options);
+    }
+    /**
+     * Chat specifically about coding
+     */
+    async codeChat(message) {
+        return await this.conversation.codeChat(message);
+    }
+    /**
+     * Chat specifically about security
+     */
+    async securityChat(message) {
+        return await this.conversation.securityChat(message);
+    }
+    /**
+     * Chat for debugging help
+     */
+    async debugChat(message) {
+        return await this.conversation.debugChat(message);
+    }
+    /**
+     * Chat for learning/education
+     */
+    async learnChat(message) {
+        return await this.conversation.learnChat(message);
+    }
+    /**
+     * Chat for creative discussions
+     */
+    async creativeChat(message) {
+        return await this.conversation.creativeChat(message);
+    }
+    /**
+     * Chat for debate/argumentation
+     */
+    async debateChat(message) {
+        return await this.conversation.debateChat(message);
+    }
+    /**
+     * Chat for coaching/advice
+     */
+    async coachingChat(message) {
+        return await this.conversation.coachingChat(message);
+    }
+    /**
+     * Chat for storytelling
+     */
+    async storyChat(message) {
+        return await this.conversation.storyChat(message);
+    }
+    /**
+     * Switch conversation mode
+     */
+    async switchMode(mode) {
+        await this.conversation.switchMode(mode);
+    }
+    /**
+     * Set conversation tone
+     */
+    setTone(tone) {
+        this.conversation.setTone(tone);
+    }
+    /**
+     * Set conversation style
+     */
+    setStyle(style) {
+        this.conversation.setStyle(style);
+    }
+    /**
+     * Get current conversation session
+     */
+    getCurrentConversation() {
+        return this.conversation.getSession();
+    }
+    /**
+     * End current conversation
+     */
+    async endConversation() {
+        await this.conversation.endSession();
+    }
+    /**
+     * Get all conversation sessions
+     */
+    getAllConversations() {
+        return this.conversation.getAllSessions();
+    }
+    /**
+     * Get conversation statistics
+     */
+    getConversationStats() {
+        const stats = this.conversation.getStats();
+        return {
+            totalSessions: stats.totalSessions,
+            totalMessages: stats.totalMessages,
+            averageSessionLength: stats.averageSessionLength
+        };
+    }
+    /**
+     * Available conversation modes
+     */
+    getConversationModes() {
+        return Object.values(ConversationEngine_js_1.ConversationMode);
+    }
+    /**
+     * Available emotional tones
+     */
+    getEmotionalTones() {
+        return Object.values(ConversationEngine_js_1.EmotionalTone);
+    }
+    /**
+     * Available conversation styles
+     */
+    getConversationStyles() {
+        return Object.values(ConversationEngine_js_1.ConversationStyle);
     }
 }
 exports.KaiAgentImpl = KaiAgentImpl;

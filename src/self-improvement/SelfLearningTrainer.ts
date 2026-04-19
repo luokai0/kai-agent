@@ -527,11 +527,12 @@ app.post('/users', async (req, res) => {
         await this.memoryBrain.store({
           type: 'semantic',
           content: `Input: ${experience.input}\nOutput: ${experience.actualOutput}`,
+          importance: 0.8,
           metadata: {
-            category: experience.category,
-            timestamp: experience.timestamp
-          },
-          importance: 0.8
+            tags: [experience.category, 'learned_experience'],
+            source: 'self_learning',
+            context: { timestamp: experience.timestamp }
+          }
         });
         consolidated++;
       } else if (!experience.correct) {
@@ -710,8 +711,9 @@ app.post('/users', async (req, res) => {
   }
 
   private findRelatedExamples(domain: string): TrainingExample[] {
-    const allExamples = Array.from(this.dataManager.getStats().byCategory.keys());
-    const related = allExamples.filter(cat => 
+    const stats = this.dataManager.getStats();
+    const allCategories = Object.keys(stats.byCategory);
+    const related = allCategories.filter(cat => 
       cat.includes(domain) || domain.includes(cat)
     );
 

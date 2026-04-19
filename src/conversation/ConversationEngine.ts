@@ -76,7 +76,9 @@ export enum EmotionalTone {
   SUPPORTIVE = 'supportive',
   CRITICAL = 'critical',
   CURIOUS = 'curious',
-  INSPIRATIONAL = 'inspirational'
+  INSPIRATIONAL = 'inspirational',
+  FRIENDLY = 'friendly',
+  WARM = 'warm'
 }
 
 export enum IntentCategory {
@@ -1072,7 +1074,20 @@ export enum PersonalityType {
   LOYALIST = 'loyalist',
   ENTHUSIAST = 'enthusiast',
   CHALLENGER = 'challenger',
-  PEACEMAKER = 'peacemaker'
+  PEACEMAKER = 'peacemaker',
+  TEACHER = 'teacher',
+  COUNSELOR = 'counselor',
+  ARTIST = 'artist',
+  INTERVIEWER = 'interviewer',
+  COACH = 'coach',
+  STORYTELLER = 'storyteller',
+  DEVELOPER = 'developer',
+  GUARDIAN = 'guardian',
+  DETECTIVE = 'detective',
+  ARCHITECT = 'architect',
+  CRITIC = 'critic',
+  PHILOSOPHER = 'philosopher',
+  MEDITATOR = 'meditator'
 }
 
 export interface RhetoricalDevices {
@@ -1458,14 +1473,14 @@ export class ConversationEngine extends EventEmitter {
     this.currentSession = session;
     
     // Store in memory
-    await this.memoryBrain.store({
-      id: `session_${sessionId}`,
-      type: MemoryType.EPISODIC,
-      content: { sessionStart: session.startTime, mode: session.mode },
-      timestamp: new Date(),
+    this.memoryBrain.store({
+      type: 'episodic',
+      content: JSON.stringify({ sessionStart: session.startTime, mode: session.mode }),
       importance: 0.7,
-      associations: [],
-      metadata: { type: 'conversation_session' }
+      metadata: {
+        tags: ['session', 'conversation'],
+        source: 'conversation_session'
+      }
     });
     
     this.emit('sessionStarted', session);
@@ -1599,20 +1614,20 @@ export class ConversationEngine extends EventEmitter {
     session.state.phase = ConversationPhase.TERMINATED;
     
     // Store session summary in memory
-    await this.memoryBrain.store({
-      id: `session_summary_${session.id}`,
-      type: MemoryType.EPISODIC,
-      content: {
+    this.memoryBrain.store({
+      type: 'episodic',
+      content: JSON.stringify({
         sessionId: session.id,
         duration: Date.now() - session.startTime.getTime(),
         messageCount: session.messages.length,
         topics: session.context.topics.discussed.map(t => t.topic.category),
         summary: await this.generateSessionSummary(session)
-      },
-      timestamp: new Date(),
+      }),
       importance: 0.8,
-      associations: [],
-      metadata: { type: 'session_summary' }
+      metadata: {
+        tags: ['session', 'summary'],
+        source: 'session_summary'
+      }
     });
     
     this.emit('sessionEnded', session);
@@ -1692,11 +1707,7 @@ export class ConversationEngine extends EventEmitter {
 
   private async classifyIntent(content: string): Promise<IntentClassification> {
     // Neural-based intent classification
-    const features = this.extractIntentFeatures(content);
-    const classification = await this.neuralEngine.process({
-      input: features,
-      mode: 'classification'
-    });
+    const classification = await this.neuralEngine.process(content);
     
     // Rule-based intent patterns
     const ruleBasedIntent = this.matchIntentPatterns(content);
@@ -1707,7 +1718,7 @@ export class ConversationEngine extends EventEmitter {
     return {
       primary,
       secondary: this.findSecondaryIntents(content, primary),
-      confidence: classification.confidence || 0.8,
+      confidence: 0.8,
       subIntents: this.findSubIntents(content),
       actionRequired: this.requiresAction(primary),
       urgencyLevel: this.determineUrgency(content, primary)
@@ -2031,7 +2042,7 @@ export class ConversationEngine extends EventEmitter {
 
   private calculateOverallSentiment(emotions: EmotionScore[]): SentimentType {
     const positiveEmotions = [Emotion.JOY, Emotion.GRATITUDE, Emotion.EXCITEMENT, Emotion.HOPE, Emotion.CONFIDENCE, Emotion.CURIOSITY];
-    const negativeEmotions = [Emotion.SADNESS, Emotion.ANGER, Emotion.FEAR, Emotion.FRUSTRATION, Emotion.CONFUSION];
+    const negativeEmotions = [Emotion.SADNESS, Emotion.ANGER, Emotion.FEAR, Emotion.FRUSTRATION, Emotion.DISGUST];
     
     let positiveScore = 0;
     let negativeScore = 0;
@@ -2151,7 +2162,7 @@ export class ConversationEngine extends EventEmitter {
 
   private extractKeywords(content: string): string[] {
     // Simple keyword extraction
-    const stopWords = new Set(['the', 'a', 'an', 'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should', 'may', 'might', 'must', 'shall', 'can', 'need', 'dare', 'ought', 'used', 'to', 'of', 'in', 'for', 'on', 'with', 'at', 'by', 'from', 'as', 'into', 'through', 'during', 'before', 'after', 'above', 'below', 'between', 'under', 'again', 'further', 'then', 'once', 'here', 'there', 'when', 'where', 'why', 'how', 'all', 'each', 'few', 'more', 'most', 'other', 'some', 'such', 'no', 'nor', 'not', 'only', 'own', 'same', 'so', 'than', 'too', 'very', 'just', 'and', 'but', 'if', 'or', 'because', 'until', 'while', 'although', 'though', 'after', 'before', 'when', 'whenever', 'i', 'me', 'my', 'myself', 'we', 'our', 'ours', 'ourselves', 'you', 'your', 'yours', 'yourself', 'yourselves', 'he', 'him', 'his', 'himself', 'she', 'her', 'hers', 'herself', 'it', 'its', 'itself', 'they', 'them', 'their', 'theirs', 'themselves', 'what', 'which', 'who', 'whom', 'this', 'that', 'these', 'those', 'am', 'been']);
+    const stopWords = new Set(['the', 'a', 'an', 'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should', 'may', 'might', 'must', 'shall', 'can', 'need', 'dare', 'ought', 'used', 'to', 'of', 'in', 'for', 'on', 'with', 'at', 'by', 'from', 'as', 'into', 'through', 'during', 'before', 'after', 'when', 'where', 'why', 'how', 'all', 'each', 'few', 'more', 'most', 'other', 'some', 'such', 'no', 'nor', 'not', 'only', 'own', 'same', 'so', 'than', 'too', 'very', 'just', 'and', 'but', 'if', 'or', 'because', 'until', 'while', 'although', 'though', 'after', 'before', 'when', 'whenever', 'i', 'me', 'my', 'myself', 'we', 'our', 'ours', 'ourselves', 'you', 'your', 'yours', 'yourself', 'yourselves', 'he', 'him', 'his', 'himself', 'she', 'her', 'hers', 'herself', 'it', 'its', 'itself', 'they', 'them', 'their', 'theirs', 'themselves', 'what', 'which', 'who', 'whom', 'this', 'that', 'these', 'those', 'am', 'been']);
     
     const words = content
       .toLowerCase()
@@ -2555,7 +2566,7 @@ export class ConversationEngine extends EventEmitter {
     }
     
     // Parallelism
-    if (/,.*,.*,/.test(content)) {
+    if (/\b(and|but|or|nor|either|neither|both|plus|minus|times|divided by)\b/i.test(content)) {
       devices.push('parallelism');
     }
     
@@ -2900,22 +2911,20 @@ export class ConversationEngine extends EventEmitter {
   private async storeMessageInMemory(message: ConversationMessage, session: ConversationSession): Promise<void> {
     const importance = this.calculateMessageImportance(message);
     
-    await this.memoryBrain.store({
-      id: message.id,
-      type: MemoryType.EPISODIC,
-      content: {
+    this.memoryBrain.store({
+      type: 'episodic',
+      content: JSON.stringify({
         role: message.role,
         content: message.content,
         intent: message.intent.primary,
         topics: message.topics.map(t => t.category),
         sentiment: message.sentiment.overall
-      },
-      timestamp: message.timestamp,
+      }),
       importance,
-      associations: message.entities.map(e => e.text),
       metadata: {
-        sessionId: session.id,
-        type: 'conversation_message'
+        tags: ['message', 'conversation'],
+        source: 'conversation_message',
+        associations: message.entities.map(e => e.text)
       }
     });
   }
@@ -3052,7 +3061,16 @@ export class ConversationEngine extends EventEmitter {
       structure: {
         opening: { type: OpeningType.GREETING, content: 'Hello!', hook: false, context: false },
         body: { sections: [], flow: { primary: FlowPattern.TOPICAL, secondary: [], connectors: [] }, transitions: [] },
-        closing: { type: ClosingType.QUESTION, content: '', callToAction: [], followUp: true, question: true }
+        closing: { type: ClosingType.QUESTION, content: '', callToAction: [], followUp: true, question: true },
+        formatting: { 
+          markdown: true, 
+          codeBlocks: false, 
+          headings: false, 
+          lists: false, 
+          tables: false, 
+          emphasis: { bold: true, italic: false, code: false, links: true },
+          whitespace: { paragraphBreaks: 2, sectionBreaks: 1, listSpacing: 1 }
+        }
       },
       timing: { delay: 0, pacing: ResponsePacing.NORMAL, pauses: [] },
       followUp: { questions: [{ text: 'How can I help you?', type: QuestionType.OPEN, purpose: QuestionPurpose.ENGAGE, timing: QuestionTiming.IMMEDIATE }], suggestions: [], actions: [], continuation: [] },
@@ -3122,7 +3140,7 @@ export class ConversationEngine extends EventEmitter {
     
     // Determine opening
     if (session.state.turnNumber < 3) {
-      opening = { type: OpeningType.ACKNOWLEDGMENT, content: 'I understand.', hook: false, context: true };
+      opening = { type: OpeningType.ACKNOWLEDGMENT, content: 'I understand.', hook: false, context: false };
     } else if (primaryIntent === IntentCategory.QUESTION) {
       opening = { type: OpeningType.DIRECT, content: '', hook: false, context: false };
     } else {
@@ -3145,7 +3163,7 @@ export class ConversationEngine extends EventEmitter {
       closing = { type: ClosingType.QUESTION, content: '', callToAction: [], followUp: true, question: true };
     }
     
-    return { opening, body, closing, formatting: { markdown: true, codeBlocks: true, headings: false, lists: true, tables: false, emphasis: { bold: true, italic: true, code: true, links: true }, whitespace: { paragraphBreaks: 2, sectionBreaks: 1, listSpacing: 1 } } };
+    return { opening, body, closing, formatting: { markdown: true, codeBlocks: false, headings: false, lists: false, tables: false, emphasis: { bold: true, italic: false, code: false, links: true }, whitespace: { paragraphBreaks: 2, sectionBreaks: 1, listSpacing: 1 } } };
   }
 
   private async determineResponseContent(userMessage: ConversationMessage, session: ConversationSession): Promise<ResponseContent> {
@@ -3154,26 +3172,17 @@ export class ConversationEngine extends EventEmitter {
     const examples: ContentExample[] = [];
     
     // Use neural engine to process and generate content points
-    const neuralOutput = await this.neuralEngine.process({
-      input: userMessage.content,
-      mode: 'reasoning',
-      context: {
-        intent: userMessage.intent.primary,
-        topics: userMessage.topics.map(t => t.category),
-        sessionHistory: session.messages.slice(-5).map(m => m.content)
-      }
-    });
+    const neuralOutput = await this.neuralEngine.process(userMessage.content);
     
-    // Convert neural output to content points
-    if (neuralOutput.points) {
-      for (const point of neuralOutput.points) {
-        mainPoints.push({
-          text: point.text,
-          importance: point.importance || 0.5,
-          category: this.mapToPointCategory(point.type),
-          evidence: point.evidence || []
-        });
-      }
+    // Convert neural output to content points (simplified parsing)
+    const lines = neuralOutput.split('\n').filter(l => l.trim());
+    for (const line of lines.slice(0, 3)) {
+      mainPoints.push({
+        text: line,
+        importance: 0.7,
+        category: PointCategory.FACT,
+        evidence: []
+      });
     }
     
     // Add code if relevant
@@ -3212,20 +3221,14 @@ export class ConversationEngine extends EventEmitter {
 
   private async generateCodeSnippet(userMessage: ConversationMessage, session: ConversationSession): Promise<CodeContent | null> {
     // Use neural engine to generate code
-    const codeOutput = await this.neuralEngine.process({
-      input: userMessage.content,
-      mode: 'code_generation',
-      context: {
-        language: this.detectLanguage(userMessage.content),
-        intent: userMessage.intent.primary
-      }
-    });
+    const codeOutput = await this.neuralEngine.process(userMessage.content);
     
-    if (codeOutput.code) {
+    // Check if output contains code-like patterns
+    if (codeOutput.includes('function') || codeOutput.includes('class') || codeOutput.includes('const') || codeOutput.includes('import')) {
       return {
-        language: codeOutput.language || 'typescript',
-        code: codeOutput.code,
-        explanation: codeOutput.explanation || '',
+        language: this.detectLanguage(userMessage.content) || 'typescript',
+        code: codeOutput,
+        explanation: 'Generated code based on your request',
         purpose: CodePurpose.ILLUSTRATIVE,
         execution: {
           runnable: true,
@@ -3383,14 +3386,14 @@ export class ConversationEngine extends EventEmitter {
     return {
       metaphors: true,
       analogies: true,
-      rhetorical: false,
+      rhetorical: true,
       repetition: false,
       parallelism: true,
       alliteration: false,
       anecdotes: true,
       statistics: true,
       authority: true,
-      pathos: false,
+      pathos: true,
       logos: true,
       ethos: true,
       irony: false,
@@ -3398,7 +3401,7 @@ export class ConversationEngine extends EventEmitter {
       understatement: false,
       personification: false,
       simile: true,
-      symbolism: false
+      symbolism: true
     };
   }
 
@@ -3749,7 +3752,7 @@ class AcademicModeHandler implements ModeHandler {
   }
   
   private createRhetoric(): RhetoricalDevices {
-    return { metaphors: false, analogies: true, rhetorical: false, repetition: false, parallelism: true, alliteration: false, anecdotes: false, statistics: true, authority: true, pathos: false, logos: true, ethos: true, irony: false, hyperbole: false, understatement: false, personification: false, simile: true, symbolism: false };
+    return { metaphors: false, analogies: true, rhetorical: false, repetition: false, parallelism: true, alliteration: false, anecdotes: false, statistics: true, authority: true, pathos: false, logos: true, ethos: true, irony: false, hyperbole: false, understatement: false, personification: false, simile: false, symbolism: false };
   }
 }
 
@@ -3781,35 +3784,35 @@ class CasualModeHandler implements ModeHandler {
   }
   
   private createRhetoric(): RhetoricalDevices {
-    return { metaphors: true, analogies: true, rhetorical: true, repetition: false, parallelism: true, alliteration: false, anecdotes: true, statistics: false, authority: false, pathos: true, logos: true, ethos: false, irony: true, hyperbole: true, understatement: true, personification: false, simile: true, symbolism: false };
+    return { metaphors: true, analogies: true, rhetorical: true, repetition: false, parallelism: true, alliteration: false, anecdotes: true, statistics: false, authority: false, pathos: true, logos: false, ethos: false, irony: true, hyperbole: true, understatement: true, personification: true, simile: true, symbolism: true };
   }
 }
 
 class FriendlyModeHandler implements ModeHandler {
-  getDefaultTone(): EmotionalTone { return EmotionalTone.WARM; }
+  getDefaultTone(): EmotionalTone { return EmotionalTone.FRIENDLY; }
   getDefaultStyle(): ConversationStyle { return ConversationStyle.BALANCED; }
   getVoiceCharacteristics(): VoiceCharacteristics { return this.createVoice(); }
   getRhetoricalDevices(): RhetoricalDevices { return this.createRhetoric(); }
   async handle(message: ConversationMessage, session: ConversationSession): Promise<ResponsePlan> { throw new Error('Not implemented'); }
   
   private createVoice(): VoiceCharacteristics {
-    return { personality: [PersonalityType.HELPER], warmth: 0.95, competence: 0.85, assertiveness: 0.4, creativity: 0.6, enthusiasm: 0.7, patience: 0.95, curiosity: 0.8, humor: 0.5, empathy: 0.95 };
+    return { personality: [PersonalityType.HELPER], warmth: 0.95, competence: 0.85, assertiveness: 0.3, creativity: 0.6, enthusiasm: 0.7, patience: 0.9, curiosity: 0.8, humor: 0.5, empathy: 0.95 };
   }
   
   private createRhetoric(): RhetoricalDevices {
-    return { metaphors: true, analogies: true, rhetorical: true, repetition: false, parallelism: true, alliteration: false, anecdotes: true, statistics: false, authority: false, pathos: true, logos: true, ethos: true, irony: true, hyperbole: false, understatement: true, personification: false, simile: true, symbolism: false };
+    return { metaphors: true, analogies: true, rhetorical: false, repetition: false, parallelism: true, alliteration: false, anecdotes: true, statistics: false, authority: false, pathos: true, logos: true, ethos: true, irony: false, hyperbole: false, understatement: false, personification: false, simile: true, symbolism: false };
   }
 }
 
 class PlayfulModeHandler implements ModeHandler {
   getDefaultTone(): EmotionalTone { return EmotionalTone.PLAYFUL; }
-  getDefaultStyle(): ConversationStyle { return ConversationStyle.CONCISE; }
+  getDefaultStyle(): ConversationStyle { return ConversationStyle.METAPHORICAL; }
   getVoiceCharacteristics(): VoiceCharacteristics { return this.createVoice(); }
   getRhetoricalDevices(): RhetoricalDevices { return this.createRhetoric(); }
   async handle(message: ConversationMessage, session: ConversationSession): Promise<ResponsePlan> { throw new Error('Not implemented'); }
   
   private createVoice(): VoiceCharacteristics {
-    return { personality: [PersonalityType.ENTERTAINER, PersonalityType.EXPLORER], warmth: 0.8, competence: 0.8, assertiveness: 0.5, creativity: 0.9, enthusiasm: 0.9, patience: 0.7, curiosity: 0.9, humor: 0.9, empathy: 0.7 };
+    return { personality: [PersonalityType.ENTERTAINER], warmth: 0.85, competence: 0.75, assertiveness: 0.4, creativity: 0.95, enthusiasm: 0.9, patience: 0.7, curiosity: 0.85, humor: 0.95, empathy: 0.75 };
   }
   
   private createRhetoric(): RhetoricalDevices {
@@ -3825,11 +3828,11 @@ class HumorousModeHandler implements ModeHandler {
   async handle(message: ConversationMessage, session: ConversationSession): Promise<ResponsePlan> { throw new Error('Not implemented'); }
   
   private createVoice(): VoiceCharacteristics {
-    return { personality: [PersonalityType.ENTERTAINER], warmth: 0.8, competence: 0.7, assertiveness: 0.5, creativity: 0.95, enthusiasm: 0.9, patience: 0.7, curiosity: 0.8, humor: 1.0, empathy: 0.7 };
+    return { personality: [PersonalityType.ENTERTAINER], warmth: 0.8, competence: 0.7, assertiveness: 0.4, creativity: 0.9, enthusiasm: 0.6, patience: 0.7, curiosity: 0.8, humor: 0.9, empathy: 0.7 };
   }
   
   private createRhetoric(): RhetoricalDevices {
-    return { metaphors: true, analogies: true, rhetorical: true, repetition: true, parallelism: true, alliteration: true, anecdotes: true, statistics: false, authority: false, pathos: true, logos: false, ethos: false, irony: true, hyperbole: true, understatement: true, personification: true, simile: true, symbolism: true };
+    return { metaphors: true, analogies: true, rhetorical: true, repetition: false, parallelism: true, alliteration: false, anecdotes: true, statistics: false, authority: false, pathos: true, logos: false, ethos: false, irony: false, hyperbole: false, understatement: false, personification: false, simile: true, symbolism: false };
   }
 }
 
@@ -3845,7 +3848,7 @@ class EducationalModeHandler implements ModeHandler {
   }
   
   private createRhetoric(): RhetoricalDevices {
-    return { metaphors: true, analogies: true, rhetorical: true, repetition: true, parallelism: true, alliteration: false, anecdotes: true, statistics: true, authority: true, pathos: false, logos: true, ethos: true, irony: false, hyperbole: false, understatement: false, personification: false, simile: true, symbolism: false };
+    return { metaphors: true, analogies: true, rhetorical: true, repetition: false, parallelism: true, alliteration: false, anecdotes: true, statistics: true, authority: true, pathos: false, logos: true, ethos: false, irony: false, hyperbole: false, understatement: false, personification: false, simile: true, symbolism: false };
   }
 }
 
@@ -3861,7 +3864,7 @@ class TherapeuticModeHandler implements ModeHandler {
   }
   
   private createRhetoric(): RhetoricalDevices {
-    return { metaphors: true, analogies: true, rhetorical: true, repetition: false, parallelism: false, alliteration: false, anecdotes: false, statistics: false, authority: false, pathos: true, logos: false, ethos: true, irony: false, hyperbole: false, understatement: false, personification: false, simile: true, symbolism: true };
+    return { metaphors: true, analogies: true, rhetorical: true, repetition: false, parallelism: true, alliteration: false, anecdotes: true, statistics: false, authority: false, pathos: true, logos: false, ethos: false, irony: false, hyperbole: false, understatement: false, personification: false, simile: true, symbolism: true };
   }
 }
 
@@ -3893,7 +3896,7 @@ class DebateModeHandler implements ModeHandler {
   }
   
   private createRhetoric(): RhetoricalDevices {
-    return { metaphors: true, analogies: true, rhetorical: true, repetition: true, parallelism: true, alliteration: false, anecdotes: true, statistics: true, authority: true, pathos: false, logos: true, ethos: true, irony: true, hyperbole: false, understatement: false, personification: false, simile: true, symbolism: false };
+    return { metaphors: true, analogies: true, rhetorical: true, repetition: false, parallelism: true, alliteration: false, anecdotes: true, statistics: true, authority: true, pathos: false, logos: true, ethos: false, irony: false, hyperbole: false, understatement: false, personification: false, simile: true, symbolism: false };
   }
 }
 
@@ -3941,7 +3944,7 @@ class CoachingModeHandler implements ModeHandler {
   }
   
   private createRhetoric(): RhetoricalDevices {
-    return { metaphors: true, analogies: true, rhetorical: true, repetition: true, parallelism: true, alliteration: false, anecdotes: true, statistics: false, authority: true, pathos: true, logos: true, ethos: true, irony: false, hyperbole: false, understatement: false, personification: false, simile: true, symbolism: true };
+    return { metaphors: true, analogies: true, rhetorical: true, repetition: true, parallelism: true, alliteration: false, anecdotes: true, statistics: false, authority: true, pathos: true, logos: true, ethos: true, irony: false, hyperbole: false, understatement: false, personification: false, simile: true, symbolism: false };
   }
 }
 
@@ -3985,7 +3988,7 @@ class SecurityAdvisorModeHandler implements ModeHandler {
   async handle(message: ConversationMessage, session: ConversationSession): Promise<ResponsePlan> { throw new Error('Not implemented'); }
   
   private createVoice(): VoiceCharacteristics {
-    return { personality: [PersonalityType.GUARDIAN], warmth: 0.5, competence: 0.98, assertiveness: 0.8, creativity: 0.5, enthusiasm: 0.3, patience: 0.8, curiosity: 0.8, humor: 0.1, empathy: 0.6 };
+    return { personality: [PersonalityType.GUARDIAN], warmth: 0.5, competence: 0.98, assertiveness: 0.8, creativity: 0.5, enthusiasm: 0.3, patience: 0.9, curiosity: 0.8, humor: 0.1, empathy: 0.6 };
   }
   
   private createRhetoric(): RhetoricalDevices {
@@ -4021,7 +4024,7 @@ class ArchitectModeHandler implements ModeHandler {
   }
   
   private createRhetoric(): RhetoricalDevices {
-    return { metaphors: true, analogies: true, rhetorical: false, repetition: false, parallelism: true, alliteration: false, anecdotes: false, statistics: false, authority: true, pathos: false, logos: true, ethos: true, irony: false, hyperbole: false, understatement: false, personification: false, simile: true, symbolism: false };
+    return { metaphors: true, analogies: true, rhetorical: false, repetition: false, parallelism: true, alliteration: false, anecdotes: false, statistics: false, authority: true, pathos: false, logos: true, ethos: false, irony: false, hyperbole: false, understatement: false, personification: false, simile: true, symbolism: false };
   }
 }
 
@@ -4033,7 +4036,7 @@ class ReviewerModeHandler implements ModeHandler {
   async handle(message: ConversationMessage, session: ConversationSession): Promise<ResponsePlan> { throw new Error('Not implemented'); }
   
   private createVoice(): VoiceCharacteristics {
-    return { personality: [PersonalityType.CRITIC], warmth: 0.5, competence: 0.95, assertiveness: 0.7, creativity: 0.5, enthusiasm: 0.4, patience: 0.8, curiosity: 0.8, humor: 0.2, empathy: 0.6 };
+    return { personality: [PersonalityType.CRITIC], warmth: 0.5, competence: 0.95, assertiveness: 0.7, creativity: 0.5, enthusiasm: 0.4, patience: 0.8, curiosity: 0.8, humor: 0.2, empathy: 0.7 };
   }
   
   private createRhetoric(): RhetoricalDevices {
@@ -4049,11 +4052,11 @@ class MetaModeHandler implements ModeHandler {
   async handle(message: ConversationMessage, session: ConversationSession): Promise<ResponsePlan> { throw new Error('Not implemented'); }
   
   private createVoice(): VoiceCharacteristics {
-    return { personality: [PersonalityType.PHILOSOPHER], warmth: 0.7, competence: 0.9, assertiveness: 0.5, creativity: 0.7, enthusiasm: 0.6, patience: 0.9, curiosity: 1.0, humor: 0.4, empathy: 0.8 };
+    return { personality: [PersonalityType.PHILOSOPHER], warmth: 0.7, competence: 0.9, assertiveness: 0.5, creativity: 0.7, enthusiasm: 0.5, patience: 0.95, curiosity: 1.0, humor: 0.3, empathy: 0.8 };
   }
   
   private createRhetoric(): RhetoricalDevices {
-    return { metaphors: true, analogies: true, rhetorical: true, repetition: false, parallelism: true, alliteration: false, anecdotes: true, statistics: false, authority: false, pathos: true, logos: true, ethos: false, irony: true, hyperbole: false, understatement: true, personification: false, simile: true, symbolism: true };
+    return { metaphors: true, analogies: true, rhetorical: true, repetition: false, parallelism: true, alliteration: false, anecdotes: false, statistics: false, authority: false, pathos: true, logos: true, ethos: false, irony: false, hyperbole: false, understatement: true, personification: false, simile: true, symbolism: true };
   }
 }
 
@@ -4085,7 +4088,7 @@ class PhilosophicalModeHandler implements ModeHandler {
   }
   
   private createRhetoric(): RhetoricalDevices {
-    return { metaphors: true, analogies: true, rhetorical: true, repetition: false, parallelism: true, alliteration: false, anecdotes: true, statistics: false, authority: true, pathos: true, logos: true, ethos: true, irony: true, hyperbole: false, understatement: true, personification: false, simile: true, symbolism: true };
+    return { metaphors: true, analogies: true, rhetorical: true, repetition: false, parallelism: true, alliteration: false, anecdotes: false, statistics: false, authority: false, pathos: true, logos: true, ethos: false, irony: false, hyperbole: false, understatement: true, personification: false, simile: true, symbolism: true };
   }
 }
 
