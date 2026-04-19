@@ -1,0 +1,223 @@
+{
+  "category": "cybersecurity",
+  "domain": "web-security",
+  "vulnerabilities": [
+    {
+      "id": "cwe-79",
+      "name": "Cross-site Scripting (XSS)",
+      "description": "Improper neutralization of input during web page generation",
+      "severity": "HIGH",
+      "attackVectors": ["Reflected XSS", "Stored XSS", "DOM-based XSS"],
+      "preventionMethods": [
+        "Encode output based on context (HTML, JavaScript, URL, CSS)",
+        "Use Content Security Policy (CSP)",
+        "Validate and sanitize all user inputs",
+        "Use HTTPOnly and Secure cookie flags"
+      ],
+      "codeExamples": {
+        "vulnerable": "// VULNERABLE\nconst name = req.query.name;\nres.send('<h1>Hello ' + name + '</h1>');",
+        "secure": "// SECURE\nconst name = escapeHtml(req.query.name);\nres.send(`<h1>Hello ${name}</h1>`);\n\nfunction escapeHtml(str: string): string {\n  return str\n    .replace(/&/g, '&amp;')\n    .replace(/</g, '&lt;')\n    .replace(/>/g, '&gt;')\n    .replace(/\"/g, '&quot;')\n    .replace(/'/g, '&#x27;');\n}"
+      },
+      "detectionMethods": ["Static analysis", "Dynamic scanning", "Manual code review"],
+      "cveReferences": ["CVE-2021-44228", "CVE-2020-8189"]
+    },
+    {
+      "id": "cwe-89",
+      "name": "SQL Injection",
+      "description": "Improper neutralization of special elements used in SQL command",
+      "severity": "CRITICAL",
+      "attackVectors": ["In-band SQLi", "Blind SQLi", "Out-of-band SQLi"],
+      "preventionMethods": [
+        "Use parameterized queries/prepared statements",
+        "Use ORM with proper parameter binding",
+        "Input validation and sanitization",
+        "Principle of least privilege for database users"
+      ],
+      "codeExamples": {
+        "vulnerable": "// VULNERABLE\nconst query = `SELECT * FROM users WHERE id = ${userId}`;\nconst result = await db.execute(query);",
+        "secure": "// SECURE\nconst query = 'SELECT * FROM users WHERE id = ?';\nconst result = await db.execute(query, [userId]);"
+      },
+      "detectionMethods": ["SQLMap", "Static analysis", "WAF rules"],
+      "cveReferences": ["CVE-2021-32702", "CVE-2020-35489"]
+    },
+    {
+      "id": "cwe-22",
+      "name": "Path Traversal",
+      "description": "Improper limitation of a pathname to a restricted directory",
+      "severity": "HIGH",
+      "attackVectors": ["../ sequences", "Absolute paths", "URL encoding bypass"],
+      "preventionMethods": [
+        "Validate and normalize file paths",
+        "Use allowlist for permitted files",
+        "Use chroot or containerization",
+        "Check resolved path against base directory"
+      ],
+      "codeExamples": {
+        "vulnerable": "// VULNERABLE\nconst filename = req.params.file;\nconst content = fs.readFileSync(`/uploads/${filename}`);",
+        "secure": "// SECURE\nimport path from 'path';\n\nconst baseDir = '/uploads';\nconst filename = path.basename(req.params.file);\nconst filepath = path.join(baseDir, filename);\n\nif (!filepath.startsWith(baseDir)) {\n  throw new Error('Invalid path');\n}\n\nconst content = fs.readFileSync(filepath);"
+      },
+      "detectionMethods": ["Static analysis", "Fuzzing", "Manual review"],
+      "cveReferences": ["CVE-2021-27965", "CVE-2020-8165"]
+    },
+    {
+      "id": "cwe-352",
+      "name": "Cross-Site Request Forgery (CSRF)",
+      "description": "Insufficient CSRF protection allows unauthorized actions",
+      "severity": "MEDIUM",
+      "attackVectors": ["Hidden forms", "Image tags", "AJAX requests"],
+      "preventionMethods": [
+        "Use CSRF tokens in forms",
+        "SameSite cookie attribute",
+        "Check Origin and Referer headers",
+        "Use custom headers for API requests"
+      ],
+      "codeExamples": {
+        "vulnerable": "// VULNERABLE - No CSRF token\napp.post('/transfer', (req, res) => {\n  const { to, amount } = req.body;\n  // Transfer money...\n});",
+        "secure": "// SECURE\nimport csrf from 'csurf';\n\nconst csrfProtection = csrf({ cookie: true });\n\napp.post('/transfer', csrfProtection, (req, res) => {\n  const { to, amount } = req.body;\n  // Transfer money...\n});"
+      },
+      "detectionMethods": ["Automated scanning", "Manual testing"],
+      "cveReferences": ["CVE-2021-23358", "CVE-2020-8203"]
+    },
+    {
+      "id": "cwe-287",
+      "name": "Improper Authentication",
+      "description": "Improper authentication allows unauthorized access",
+      "severity": "CRITICAL",
+      "attackVectors": ["Brute force", "Credential stuffing", "Session hijacking"],
+      "preventionMethods": [
+        "Implement rate limiting on login attempts",
+        "Use multi-factor authentication",
+        "Secure session management",
+        "Use strong password policies"
+      ],
+      "codeExamples": {
+        "vulnerable": "// VULNERABLE - No rate limiting, weak password check\napp.post('/login', async (req, res) => {\n  const { username, password } = req.body;\n  const user = await User.findOne({ username });\n  if (user && user.password === password) {\n    res.json({ token: generateToken(user) });\n  }\n});",
+        "secure": "// SECURE\nimport rateLimit from 'express-rate-limit';\nimport bcrypt from 'bcrypt';\n\nconst loginLimiter = rateLimit({\n  windowMs: 15 * 60 * 1000,\n  max: 5\n});\n\napp.post('/login', loginLimiter, async (req, res) => {\n  const { username, password } = req.body;\n  const user = await User.findOne({ username });\n  \n  if (user && await bcrypt.compare(password, user.passwordHash)) {\n    const token = generateToken(user);\n    res.json({ token });\n  } else {\n    res.status(401).json({ error: 'Invalid credentials' });\n  }\n});"
+      },
+      "detectionMethods": ["Penetration testing", "Code review", "Security audits"],
+      "cveReferences": ["CVE-2021-44228", "CVE-2020-35489"]
+    },
+    {
+      "id": "cwe-200",
+      "name": "Information Exposure",
+      "description": "Exposure of sensitive information to unauthorized actors",
+      "severity": "MEDIUM",
+      "attackVectors": ["Error messages", "Debug output", "Stack traces"],
+      "preventionMethods": [
+        "Sanitize error messages",
+        "Disable verbose errors in production",
+        "Use custom error pages",
+        "Log errors server-side, not client-side"
+      ],
+      "codeExamples": {
+        "vulnerable": "// VULNERABLE\napp.use((err, req, res, next) => {\n  res.status(500).json({\n    error: err.message,\n    stack: err.stack,\n    details: err\n  });\n});",
+        "secure": "// SECURE\napp.use((err, req, res, next) => {\n  console.error(err);\n  \n  if (process.env.NODE_ENV === 'production') {\n    res.status(500).json({ error: 'Internal server error' });\n  } else {\n    res.status(500).json({ error: err.message });\n  }\n});"
+      },
+      "detectionMethods": ["Security scanning", "Manual testing"],
+      "cveReferences": ["CVE-2021-3918", "CVE-2020-8192"]
+    },
+    {
+      "id": "cwe-918",
+      "name": "Server-Side Request Forgery (SSRF)",
+      "description": "Application fetches remote resources without validating the URL",
+      "severity": "HIGH",
+      "attackVectors": ["URL manipulation", "DNS rebinding", "Cloud metadata endpoints"],
+      "preventionMethods": [
+        "Validate and sanitize URLs",
+        "Use allowlists for permitted domains",
+        "Block internal IP ranges",
+        "Disable unnecessary URL schemes"
+      ],
+      "codeExamples": {
+        "vulnerable": "// VULNERABLE\napp.get('/proxy', async (req, res) => {\n  const url = req.query.url;\n  const response = await fetch(url);\n  res.json(await response.json());\n});",
+        "secure": "// SECURE\nimport { URL } from 'url';\n\nconst ALLOWED_DOMAINS = ['api.example.com', 'cdn.example.com'];\nconst BLOCKED_IPS = ['127.0.0.1', '169.254.169.254', '10.0.0.0/8'];\n\napp.get('/proxy', async (req, res) => {\n  try {\n    const url = new URL(req.query.url);\n    \n    if (!ALLOWED_DOMAINS.includes(url.hostname)) {\n      return res.status(403).json({ error: 'Domain not allowed' });\n    }\n    \n    const response = await fetch(url.toString());\n    res.json(await response.json());\n  } catch (error) {\n    res.status(400).json({ error: 'Invalid URL' });\n  }\n});"
+      },
+      "detectionMethods": ["SSRF testing tools", "Manual testing", "WAF rules"],
+      "cveReferences": ["CVE-2021-26855", "CVE-2020-8287"]
+    },
+    {
+      "id": "cwe-798",
+      "name": "Use of Hard-coded Credentials",
+      "description": "Hard-coded credentials make compromise easier",
+      "severity": "CRITICAL",
+      "attackVectors": ["Source code exposure", "Binary analysis", "Configuration leaks"],
+      "preventionMethods": [
+        "Use environment variables",
+        "Use secrets management systems",
+        "Rotate credentials regularly",
+        "Use IAM roles where possible"
+      ],
+      "codeExamples": {
+        "vulnerable": "// VULNERABLE\nconst dbPassword = 'mysecretpassword123';\nconst apiKey = 'sk_live_abc123xyz';\n\nconst connection = mysql.createConnection({\n  password: dbPassword\n});",
+        "secure": "// SECURE\nimport dotenv from 'dotenv';\ndotenv.config();\n\nconst connection = mysql.createConnection({\n  password: process.env.DB_PASSWORD\n});"
+      },
+      "detectionMethods": ["Secrets scanning", "Static analysis", "Code review"],
+      "cveReferences": ["CVE-2021-26855", "CVE-2020-8287"]
+    },
+    {
+      "id": "cwe-502",
+      "name": "Deserialization of Untrusted Data",
+      "description": "Unsafe deserialization can lead to RCE",
+      "severity": "CRITICAL",
+      "attackVectors": ["Malicious serialized objects", "Gadget chains"],
+      "preventionMethods": [
+        "Use safe serialization formats (JSON)",
+        "Implement integrity checks",
+        "Use allowlists for deserialization",
+        "Avoid deserializing untrusted data"
+      ],
+      "codeExamples": {
+        "vulnerable": "// VULNERABLE - unsafe deserialization\nconst obj = eval('(' + userInput + ')');",
+        "secure": "// SECURE\nimport { parse, stringify } from 'json-bigint';\n\ntry {\n  const obj = JSON.parse(userInput);\n  // Validate schema\n  if (!validateSchema(obj)) {\n    throw new Error('Invalid data');\n  }\n} catch (error) {\n  console.error('Parse error:', error);\n}"
+      },
+      "detectionMethods": ["Static analysis", "Fuzzing", "Manual review"],
+      "cveReferences": ["CVE-2021-44228", "CVE-2020-9484"]
+    },
+    {
+      "id": "cwe-306",
+      "name": "Missing Authentication for Critical Function",
+      "description": "Critical functions lack authentication checks",
+      "severity": "CRITICAL",
+      "attackVectors": ["Direct API access", "Privilege escalation"],
+      "preventionMethods": [
+        "Implement authentication middleware",
+        "Use role-based access control",
+        "Verify authentication on every request",
+        "Use principle of least privilege"
+      ],
+      "codeExamples": {
+        "vulnerable": "// VULNERABLE - No auth check\napp.delete('/users/:id', async (req, res) => {\n  await User.delete(req.params.id);\n  res.json({ success: true });\n});",
+        "secure": "// SECURE\nimport { authenticate, authorize } from './auth';\n\napp.delete('/users/:id', \n  authenticate, \n  authorize('admin'),\n  async (req, res) => {\n    await User.delete(req.params.id);\n    res.json({ success: true });\n  }\n);"
+      },
+      "detectionMethods": ["Security testing", "Code review", "API scanning"],
+      "cveReferences": ["CVE-2021-23337", "CVE-2020-8203"]
+    }
+  ],
+  "securityHeaders": {
+    "Content-Security-Policy": {
+      "description": "Prevents XSS by controlling resources",
+      "recommended": "default-src 'self'; script-src 'self' https://trusted.cdn.com; style-src 'self' 'unsafe-inline'",
+      "implementation": "app.use((req, res, next) => {\n  res.setHeader('Content-Security-Policy', \"default-src 'self'\");\n  next();\n});"
+    },
+    "X-Frame-Options": {
+      "description": "Prevents clickjacking",
+      "recommended": "DENY or SAMEORIGIN",
+      "implementation": "res.setHeader('X-Frame-Options', 'DENY');"
+    },
+    "X-Content-Type-Options": {
+      "description": "Prevents MIME sniffing",
+      "recommended": "nosniff",
+      "implementation": "res.setHeader('X-Content-Type-Options', 'nosniff');"
+    },
+    "Strict-Transport-Security": {
+      "description": "Enforces HTTPS",
+      "recommended": "max-age=31536000; includeSubDomains",
+      "implementation": "res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');"
+    },
+    "X-XSS-Protection": {
+      "description": "Legacy XSS protection",
+      "recommended": "1; mode=block",
+      "implementation": "res.setHeader('X-XSS-Protection', '1; mode=block');"
+    }
+  }
+}

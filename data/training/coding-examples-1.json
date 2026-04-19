@@ -1,0 +1,86 @@
+{
+  "category": "coding",
+  "language": "typescript",
+  "examples": [
+    {
+      "id": "ts-001",
+      "pattern": "async-function",
+      "description": "Async function with error handling",
+      "code": "async function fetchData(url: string): Promise<Response> {\n  try {\n    const response = await fetch(url);\n    if (!response.ok) {\n      throw new Error(`HTTP error! status: ${response.status}`);\n    }\n    return response;\n  } catch (error) {\n    console.error('Fetch error:', error);\n    throw error;\n  }\n}",
+      "bestPractices": ["Always handle errors in async functions", "Use try-catch blocks", "Check response status"],
+      "securityNotes": ["Validate URLs before fetching", "Sanitize response data"]
+    },
+    {
+      "id": "ts-002",
+      "pattern": "singleton-pattern",
+      "description": "Singleton pattern implementation",
+      "code": "class Singleton {\n  private static instance: Singleton;\n  private constructor() {}\n  \n  public static getInstance(): Singleton {\n    if (!Singleton.instance) {\n      Singleton.instance = new Singleton();\n    }\n    return Singleton.instance;\n  }\n}",
+      "bestPractices": ["Private constructor", "Lazy initialization", "Thread-safe in single-threaded JS"],
+      "securityNotes": ["Be careful with shared state", "Consider dependency injection instead"]
+    },
+    {
+      "id": "ts-003",
+      "pattern": "factory-pattern",
+      "description": "Factory pattern for object creation",
+      "code": "interface Product {\n  operation(): string;\n}\n\nclass ConcreteProductA implements Product {\n  operation(): string {\n    return 'Product A';\n  }\n}\n\nclass ConcreteProductB implements Product {\n  operation(): string {\n    return 'Product B';\n  }\n}\n\nclass Factory {\n  static createProduct(type: 'A' | 'B'): Product {\n    switch (type) {\n      case 'A': return new ConcreteProductA();\n      case 'B': return new ConcreteProductB();\n    }\n  }\n}",
+      "bestPractices": ["Use interfaces for contracts", "Keep factory logic simple"],
+      "securityNotes": ["Validate input types", "Consider using enum for types"]
+    },
+    {
+      "id": "ts-004",
+      "pattern": "observer-pattern",
+      "description": "Observer pattern implementation",
+      "code": "interface Observer {\n  update(data: any): void;\n}\n\nclass Subject {\n  private observers: Observer[] = [];\n  \n  attach(observer: Observer): void {\n    this.observers.push(observer);\n  }\n  \n  detach(observer: Observer): void {\n    const index = this.observers.indexOf(observer);\n    if (index > -1) {\n      this.observers.splice(index, 1);\n    }\n  }\n  \n  notify(data: any): void {\n    for (const observer of this.observers) {\n      observer.update(data);\n    }\n  }\n}",
+      "bestPractices": ["Use Set instead of array for O(1) removal", "Consider async notification"],
+      "securityNotes": ["Validate observer before attaching", "Prevent duplicate observers"]
+    },
+    {
+      "id": "ts-005",
+      "pattern": "decorator-pattern",
+      "description": "Decorator pattern for extending functionality",
+      "code": "interface Component {\n  operation(): string;\n}\n\nclass ConcreteComponent implements Component {\n  operation(): string {\n    return 'Base operation';\n  }\n}\n\nclass Decorator implements Component {\n  protected component: Component;\n  \n  constructor(component: Component) {\n    this.component = component;\n  }\n  \n  operation(): string {\n    return this.component.operation();\n  }\n}\n\nclass ConcreteDecorator extends Decorator {\n  operation(): string {\n    return `Extended: ${super.operation()}`;\n  }\n}",
+      "bestPractices": ["Keep decorators focused", "Use inheritance sparingly"],
+      "securityNotes": ["Validate wrapped component", "Don't expose internal state"]
+    },
+    {
+      "id": "ts-006",
+      "pattern": "state-machine",
+      "description": "State machine implementation",
+      "code": "type State = 'idle' | 'loading' | 'success' | 'error';\ntype Event = 'FETCH' | 'SUCCESS' | 'ERROR' | 'RESET';\n\nconst transitions: Record<State, Record<Event, State>> = {\n  idle: { FETCH: 'loading', SUCCESS: 'idle', ERROR: 'idle', RESET: 'idle' },\n  loading: { FETCH: 'loading', SUCCESS: 'success', ERROR: 'error', RESET: 'idle' },\n  success: { FETCH: 'loading', SUCCESS: 'success', ERROR: 'error', RESET: 'idle' },\n  error: { FETCH: 'loading', SUCCESS: 'success', ERROR: 'error', RESET: 'idle' },\n};\n\nclass StateMachine {\n  private state: State = 'idle';\n  \n  dispatch(event: Event): void {\n    this.state = transitions[this.state][event];\n  }\n  \n  getState(): State {\n    return this.state;\n  }\n}",
+      "bestPractices": ["Use explicit states", "Document transitions"],
+      "securityNotes": ["Validate state transitions", "Log state changes for debugging"]
+    },
+    {
+      "id": "ts-007",
+      "pattern": "rate-limiter",
+      "description": "Rate limiter implementation",
+      "code": "class RateLimiter {\n  private requests: number[] = [];\n  \n  constructor(\n    private maxRequests: number,\n    private windowMs: number\n  ) {}\n  \n  isAllowed(): boolean {\n    const now = Date.now();\n    this.requests = this.requests.filter(t => now - t < this.windowMs);\n    \n    if (this.requests.length < this.maxRequests) {\n      this.requests.push(now);\n      return true;\n    }\n    return false;\n  }\n}",
+      "bestPractices": ["Use sliding window for accuracy", "Consider distributed rate limiting"],
+      "securityNotes": ["Prevent brute force attacks", "Combine with IP blocking"]
+    },
+    {
+      "id": "ts-008",
+      "pattern": "connection-pool",
+      "description": "Connection pool pattern",
+      "code": "interface Connection {\n  query(sql: string): Promise<any>;\n  close(): void;\n}\n\nclass ConnectionPool {\n  private pool: Connection[] = [];\n  private inUse: Set<Connection> = new Set();\n  \n  constructor(private factory: () => Connection, private maxSize: number) {\n    for (let i = 0; i < maxSize; i++) {\n      this.pool.push(factory());\n    }\n  }\n  \n  async acquire(): Promise<Connection> {\n    if (this.pool.length === 0) {\n      throw new Error('Pool exhausted');\n    }\n    const conn = this.pool.pop()!;\n    this.inUse.add(conn);\n    return conn;\n  }\n  \n  release(conn: Connection): void {\n    this.inUse.delete(conn);\n    this.pool.push(conn);\n  }\n}",
+      "bestPractices": ["Implement connection validation", "Add timeout for acquire"],
+      "securityNotes": ["Sanitize all queries", "Use prepared statements"]
+    },
+    {
+      "id": "ts-009",
+      "pattern": "event-emitter",
+      "description": "Type-safe event emitter",
+      "code": "type EventMap = {\n  [key: string]: any;\n};\n\nclass TypedEventEmitter<T extends EventMap> {\n  private listeners: { [K in keyof T]?: ((data: T[K]) => void)[] } = {};\n  \n  on<K extends keyof T>(event: K, listener: (data: T[K]) => void): void {\n    if (!this.listeners[event]) {\n      this.listeners[event] = [];\n    }\n    this.listeners[event]!.push(listener);\n  }\n  \n  emit<K extends keyof T>(event: K, data: T[K]): void {\n    const eventListeners = this.listeners[event];\n    if (eventListeners) {\n      eventListeners.forEach(l => l(data));\n    }\n  }\n  \n  off<K extends keyof T>(event: K, listener: (data: T[K]) => void): void {\n    const eventListeners = this.listeners[event];\n    if (eventListeners) {\n      const index = eventListeners.indexOf(listener);\n      if (index > -1) eventListeners.splice(index, 1);\n    }\n  }\n}",
+      "bestPractices": ["Use typed events", "Clean up listeners"],
+      "securityNotes": ["Prevent memory leaks by removing listeners", "Validate event data"]
+    },
+    {
+      "id": "ts-010",
+      "pattern": "retry-logic",
+      "description": "Retry logic with exponential backoff",
+      "code": "async function retry<T>(\n  fn: () => Promise<T>,\n  maxRetries: number = 3,\n  baseDelay: number = 1000\n): Promise<T> {\n  let lastError: Error;\n  \n  for (let i = 0; i < maxRetries; i++) {\n    try {\n      return await fn();\n    } catch (error) {\n      lastError = error as Error;\n      const delay = baseDelay * Math.pow(2, i);\n      await new Promise(resolve => setTimeout(resolve, delay));\n    }\n  }\n  \n  throw lastError!;\n}",
+      "bestPractices": ["Use exponential backoff", "Add jitter to prevent thundering herd"],
+      "securityNotes": ["Limit max retries", "Log retry attempts"]
+    }
+  ]
+}
