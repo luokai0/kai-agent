@@ -1,26 +1,16 @@
 #!/bin/bash
-# =============================================================================
-# KAI AGENT - QUICK START SCRIPT
-# =============================================================================
-# Double-click this file to start Kai Agent!
+# Kai Agent - Quick Start Script (2 Clicks)
+# Run: ./start.sh
 
+echo "🧠 Starting Kai Agent..."
 cd "$(dirname "$0")"
 
-echo "Starting Kai Agent..."
-echo ""
-
-# Check if node_modules exists
-if [ ! -d "node_modules" ]; then
-    echo "Installing dependencies..."
-    npm install --silent 2>/dev/null || bun install --silent 2>/dev/null
+# Check if bun is installed
+if ! command -v bun &> /dev/null; then
+    echo "❌ Bun is not installed. Please install it first:"
+    echo "   curl -fsSL https://bun.sh/install | bash"
+    exit 1
 fi
 
-# Run the agent
-echo "Launching Kai Agent CLI..."
-echo ""
-
-if command -v bun &> /dev/null; then
-    bun run src/cli/start.ts
-else
-    npx tsx src/cli/start.ts
-fi
+# Build and run
+bun run build && bun run src/cli/start.ts

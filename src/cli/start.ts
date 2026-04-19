@@ -1,100 +1,218 @@
-#!/usr/bin/env node
-// =============================================================================
-// KAI AGENT - CLI STARTER
-// =============================================================================
+#!/usr/bin/env bun
+/**
+ * Kai Agent - Phase 2 Startup Script
+ * Start the Kai Agent with web interface
+ */
 
-import { createInterface } from 'readline';
 import { KaiAgentImpl } from '../core/agent.js';
+import { KnowledgeBase } from '../knowledge/KnowledgeBase.js';
+import { LearningEngine } from '../learning/LearningEngine.js';
+import { WebInterface } from '../web/WebInterface.js';
+import { CellFactory } from '../cells/SpecializedCells.js';
 
-const rl = createInterface({
-  input: process.stdin,
-  output: process.stdout
-});
+// Colors for terminal output
+const colors = {
+  reset: '\x1b[0m',
+  bright: '\x1b[1m',
+  green: '\x1b[32m',
+  blue: '\x1b[34m',
+  yellow: '\x1b[33m',
+  cyan: '\x1b[36m',
+  magenta: '\x1b[35m',
+  red: '\x1b[31m'
+};
+
+function log(emoji: string, message: string) {
+  console.log(`${emoji} ${message}`);
+}
 
 async function main() {
-  console.log('╔════════════════════════════════════════════════════════════════╗');
-  console.log('║                    KAI AGENT - NEURAL AI BRAIN                 ║');
-  console.log('║            Memory + Tree of Thoughts + Cell Architecture       ║');
-  console.log('║                      Built by Zo AI for luokai                 ║');
-  console.log('╚════════════════════════════════════════════════════════════════╝');
-  console.log('');
-  console.log('Initializing Kai Agent...');
-  console.log('');
+  console.log(`\n${colors.bright}${colors.cyan}╔════════════════════════════════════════════════════════════╗${colors.reset}`);
+  console.log(`${colors.bright}${colors.cyan}║           🧠 KAI AGENT - Neural AI Brain v2.0               ║${colors.reset}`);
+  console.log(`${colors.bright}${colors.cyan}║              Phase 2 - Enhanced Edition                     ║${colors.reset}`);
+  console.log(`${colors.bright}${colors.cyan}╚════════════════════════════════════════════════════════════╝${colors.reset}\n`);
 
-  // Create and initialize agent
+  const startTime = Date.now();
+
+  // Step 1: Initialize Knowledge Base
+  log('📚', 'Initializing expanded knowledge base...');
+  const knowledgeBase = new KnowledgeBase();
+  await knowledgeBase.initialize();
+  const kbStats = knowledgeBase.getStats();
+  log('✅', `Knowledge base ready: ${kbStats.total} items across ${Object.keys(kbStats.byCategory).length} categories`);
+
+  // Step 2: Initialize Kai Agent
+  log('🧠', 'Initializing Kai Agent brain...');
   const agent = new KaiAgentImpl('Kai');
+  
+  // Step 3: Initialize Agent Core
+  log('⚡', 'Loading neural networks and memory systems...');
   await agent.initialize();
+  log('✅', 'Agent core initialized');
 
-  console.log('');
-  console.log('Agent Status:');
-  const status = agent.getStatus();
-  console.log(`  • Knowledge Items: ${status.knowledgeCount}`);
-  console.log(`  • Mode: ${status.mode}`);
-  console.log(`  • Goals: ${status.goals}`);
-  console.log('');
-  console.log('══════════════════════════════════════════════════════════════════');
-  console.log('  Type your query and press Enter. Type "exit" to quit.');
-  console.log('══════════════════════════════════════════════════════════════════');
-  console.log('');
+  // Step 4: Initialize Learning Engine
+  log('🎓', 'Starting Learning Engine...');
+  const learningEngine = new LearningEngine(agent as any);
+  await learningEngine.start();
+  const learningStats = learningEngine.getStats();
+  log('✅', `Learning Engine active: ${learningStats.totalPatterns} patterns loaded`);
 
-  const promptLoop = () => {
-    rl.question('Kai> ', async (input) => {
-      const trimmed = input.trim();
+  // Step 5: Initialize Specialized Cells
+  log('🔬', 'Creating specialized cells...');
+  const specializedCells = CellFactory.createAllSpecialized();
+  log('✅', `Created ${specializedCells.size} specialized cells: Security, Algorithm, Testing, DevOps, Database`);
+
+  // Step 6: Start Web Interface
+  log('🌐', 'Starting Web Interface...');
+  const webInterface = new WebInterface(agent as any, { port: 3000 });
+  await webInterface.start();
+  log('✅', 'Web Interface ready');
+
+  // Calculate total initialization time
+  const initTime = ((Date.now() - startTime) / 1000).toFixed(2);
+
+  // Display summary
+  console.log(`\n${colors.bright}${colors.green}╔════════════════════════════════════════════════════════════╗${colors.reset}`);
+  console.log(`${colors.bright}${colors.green}║              ✅ KAI AGENT READY                             ║${colors.reset}`);
+  console.log(`${colors.bright}${colors.green}╚════════════════════════════════════════════════════════════╝${colors.reset}`);
+  
+  console.log(`\n${colors.bright}Initialization completed in ${initTime}s${colors.reset}`);
+  console.log(`\n${colors.cyan}📊 System Status:${colors.reset}`);
+  console.log(`   📚 Knowledge Items: ${kbStats.total}`);
+  console.log(`   🧠 Patterns: ${learningStats.totalPatterns}`);
+  console.log(`   🔬 Cells: ${specializedCells.size + 6} active`);
+  console.log(`   🎓 Learning Events: ${learningStats.totalEvents}`);
+  
+  console.log(`\n${colors.magenta}🌐 Web Interface:${colors.reset}`);
+  console.log(`   ${colors.bright}http://localhost:3000${colors.reset}`);
+  
+  console.log(`\n${colors.yellow}🎮 Commands:${colors.reset}`);
+  console.log(`   /status   - Show system status`);
+  console.log(`   /stats    - Show detailed statistics`);
+  console.log(`   /learn    - Trigger learning cycle`);
+  console.log(`   /quit     - Shutdown agent`);
+  console.log(`\n${colors.cyan}Type your message to chat with Kai Agent...${colors.reset}\n`);
+
+  // Handle graceful shutdown
+  process.on('SIGINT', async () => {
+    console.log(`\n${colors.yellow}Shutting down Kai Agent...${colors.reset}`);
+    learningEngine.stop();
+    webInterface.stop();
+    await agent.shutdown();
+    console.log(`${colors.green}Goodbye!${colors.reset}`);
+    process.exit(0);
+  });
+
+  // Interactive mode
+  const readline = require('readline');
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  });
+
+  const chat = () => {
+    rl.question(`${colors.cyan}You: ${colors.reset}`, async (input: string) => {
+      const trimmedInput = input.trim();
       
-      if (trimmed.toLowerCase() === 'exit' || trimmed.toLowerCase() === 'quit') {
-        console.log('');
-        console.log('Shutting down Kai Agent...');
-        await agent.shutdown();
-        console.log('Goodbye!');
-        rl.close();
+      if (!trimmedInput) {
+        chat();
         return;
       }
 
-      if (trimmed.toLowerCase() === 'status') {
-        const s = agent.getStatus();
-        console.log('');
-        console.log('Agent Status:');
-        console.log(`  • Initialized: ${s.initialized}`);
-        console.log(`  • Mode: ${s.mode}`);
-        console.log(`  • Knowledge Items: ${s.knowledgeCount}`);
-        console.log(`  • Goals: ${s.goals}`);
-        console.log(`  • Uptime: ${Math.round(s.uptime / 1000)}s`);
-        console.log('');
-        promptLoop();
+      // Handle commands
+      if (trimmedInput.startsWith('/')) {
+        switch (trimmedInput.toLowerCase()) {
+          case '/status':
+            const status = agent.getStatus();
+            console.log(`\n${colors.bright}📊 Agent Status:${colors.reset}`);
+            console.log(`   Mode: ${status.mode}`);
+            console.log(`   Knowledge: ${status.knowledgeCount} items`);
+            console.log(`   Goals: ${status.goals}`);
+            console.log(`   Uptime: ${Math.floor(status.uptime / 1000)}s\n`);
+            break;
+            
+          case '/stats':
+            const kbStats = knowledgeBase.getStats();
+            const learnStats = learningEngine.getStats();
+            console.log(`\n${colors.bright}📊 Detailed Statistics:${colors.reset}`);
+            console.log(`   Knowledge Base: ${kbStats.total} items`);
+            console.log(`   Tags: ${kbStats.totalTags}`);
+            console.log(`   Patterns: ${learnStats.totalPatterns}`);
+            console.log(`   Corrections: ${learnStats.corrections}`);
+            console.log(`   Avg Success Rate: ${(learnStats.averageSuccessRate * 100).toFixed(1)}%`);
+            console.log(`   Top Concepts: ${learnStats.topConcepts.slice(0, 5).join(', ')}\n`);
+            break;
+            
+          case '/learn':
+            console.log(`\n${colors.yellow}🎓 Triggering learning cycle...${colors.reset}`);
+            // Process a random set of knowledge
+            const randomItems = knowledgeBase.getRandom(5);
+            for (const item of randomItems) {
+              learningEngine.recordInteraction(
+                item.title,
+                item.content,
+                {
+                  cellType: item.category,
+                  sessionId: 'cli',
+                  previousInputs: [],
+                  relatedConcepts: item.relatedConcepts,
+                  difficulty: item.difficulty
+                }
+              );
+            }
+            console.log(`${colors.green}✅ Learning cycle completed${colors.reset}\n`);
+            break;
+            
+          case '/quit':
+          case '/exit':
+            console.log(`\n${colors.yellow}Shutting down...${colors.reset}`);
+            learningEngine.stop();
+            webInterface.stop();
+            await agent.shutdown();
+            console.log(`${colors.green}Goodbye!${colors.reset}`);
+            rl.close();
+            process.exit(0);
+            break;
+            
+          default:
+            console.log(`${colors.yellow}Unknown command. Available: /status, /stats, /learn, /quit${colors.reset}\n`);
+        }
+        chat();
         return;
       }
 
-      if (trimmed.toLowerCase() === 'help') {
-        console.log('');
-        console.log('Commands:');
-        console.log('  • <query>  - Ask Kai a question about coding or cybersecurity');
-        console.log('  • status   - Show agent status');
-        console.log('  • help     - Show this help message');
-        console.log('  • exit     - Quit Kai Agent');
-        console.log('');
-        promptLoop();
-        return;
-      }
-
-      if (trimmed.length === 0) {
-        promptLoop();
-        return;
-      }
-
+      // Process with agent
       try {
-        console.log('');
-        const response = await agent.process(trimmed);
-        console.log(response);
-        console.log('');
+        process.stdout.write(`${colors.magenta}Kai: ${colors.reset}`);
+        const response = await agent.process(trimmedInput);
+        
+        // Record interaction for learning
+        learningEngine.recordInteraction(
+          trimmedInput,
+          response,
+          {
+            cellType: 'chat',
+            sessionId: 'cli',
+            previousInputs: [],
+            relatedConcepts: [],
+            difficulty: 3
+          }
+        );
+        
+        console.log(`${response}\n`);
       } catch (error) {
-        console.error('Error:', error);
+        console.error(`${colors.red}Error processing request${colors.reset}`);
       }
-
-      promptLoop();
+      
+      chat();
     });
   };
 
-  promptLoop();
+  chat();
 }
 
-main().catch(console.error);
+// Run main function
+main().catch(error => {
+  console.error(`${colors.red}Failed to start Kai Agent:${colors.reset}`, error);
+  process.exit(1);
+});
