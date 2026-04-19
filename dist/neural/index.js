@@ -1,7 +1,8 @@
 "use strict";
-// =============================================================================
-// KAI AGENT - NEURAL MODULE EXPORTS
-// =============================================================================
+/**
+ * Neural Module Index
+ * Exports all neural network components
+ */
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     var desc = Object.getOwnPropertyDescriptor(m, k);
@@ -17,10 +18,10 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-__exportStar(require("./activations.js"), exports);
-__exportStar(require("./loss.js"), exports);
-__exportStar(require("./optimizers.js"), exports);
-__exportStar(require("./neuron.js"), exports);
-__exportStar(require("./layer.js"), exports);
-__exportStar(require("./network.js"), exports);
+__exportStar(require("./matrix"), exports);
+__exportStar(require("./attention/multihead"), exports);
+__exportStar(require("./transformer/encoder"), exports);
+__exportStar(require("./lstm/lstm"), exports);
+__exportStar(require("./gru/gru"), exports);
+__exportStar(require("./convolutional/conv"), exports);
 //# sourceMappingURL=index.js.map

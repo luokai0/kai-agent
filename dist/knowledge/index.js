@@ -1,22 +1,11 @@
 "use strict";
-// =============================================================================
-// KAI AGENT - KNOWLEDGE MODULE EXPORTS
-// =============================================================================
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __exportStar = (this && this.__exportStar) || function(m, exports) {
-    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
-};
+/**
+ * Knowledge Module Exports
+ */
 Object.defineProperty(exports, "__esModule", { value: true });
-__exportStar(require("./base.js"), exports);
-__exportStar(require("./huggingface.js"), exports);
+exports.KnowledgeBaseAlias = exports.KnowledgeBase = void 0;
+var base_js_1 = require("./base.js");
+Object.defineProperty(exports, "KnowledgeBase", { enumerable: true, get: function () { return base_js_1.KnowledgeBase; } });
+var KnowledgeBase_js_1 = require("./KnowledgeBase.js");
+Object.defineProperty(exports, "KnowledgeBaseAlias", { enumerable: true, get: function () { return KnowledgeBase_js_1.KnowledgeBase; } });
 //# sourceMappingURL=index.js.map

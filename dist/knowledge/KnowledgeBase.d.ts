@@ -1,56 +1,36 @@
 /**
- * Expanded Knowledge Base for Kai Agent
- * Contains 1000+ knowledge items across multiple domains
+ * Knowledge Base - In-memory knowledge store with domain categorization
  */
 export interface KnowledgeItem {
     id: string;
     title: string;
     content: string;
-    category: KnowledgeCategory;
-    subcategory: string;
-    difficulty: 1 | 2 | 3 | 4 | 5;
-    tags: string[];
-    examples: string[];
-    relatedConcepts: string[];
-    prerequisites: string[];
+    category: string;
+    domain: string;
     source: string;
-    createdAt: string;
-    timesAccessed: number;
-    lastAccessed: string | null;
-    masteryScore: number;
+    tags: string[];
+    difficulty: number;
+    relatedConcepts: string[];
+    createdAt: Date;
+    accessCount: number;
 }
-export type KnowledgeCategory = 'coding' | 'security' | 'algorithms' | 'architecture' | 'testing' | 'devops' | 'databases' | 'ai-ml' | 'web' | 'systems';
+export interface KnowledgeStats {
+    total: number;
+    totalTags: number;
+    byCategory: Record<string, number>;
+}
 export declare class KnowledgeBase {
     private items;
-    private categoryIndex;
-    private tagIndex;
-    private initialized;
+    private categories;
+    private tags;
     constructor();
-    private initializeIndexes;
-    initialize(): Promise<void>;
+    private initializeDefaultKnowledge;
     private addItem;
-    private getCodingKnowledge;
-    private getSecurityKnowledge;
-    private getAlgorithmsKnowledge;
-    private getArchitectureKnowledge;
-    private getTestingKnowledge;
-    private getDevOpsKnowledge;
-    private getDatabasesKnowledge;
-    private getAIMLKnowledge;
-    private getWebKnowledge;
-    private getSystemsKnowledge;
-    private generateAllKnowledgeItems;
-    private generateExtendedItems;
-    getById(id: string): KnowledgeItem | undefined;
-    getByCategory(category: KnowledgeCategory): KnowledgeItem[];
-    getByTag(tag: string): KnowledgeItem[];
-    search(query: string): KnowledgeItem[];
+    initialize(): Promise<void>;
+    getStats(): KnowledgeStats;
     getRandom(count: number): KnowledgeItem[];
-    getStats(): {
-        total: number;
-        byCategory: Record<KnowledgeCategory, number>;
-        totalTags: number;
-    };
-    getAll(): KnowledgeItem[];
+    query(text: string, limit?: number): KnowledgeItem[];
+    getByCategory(category: string): KnowledgeItem[];
+    searchByTag(tag: string): KnowledgeItem[];
 }
 //# sourceMappingURL=KnowledgeBase.d.ts.map

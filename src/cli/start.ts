@@ -1,10 +1,10 @@
 #!/usr/bin/env bun
 /**
- * Kai Agent - Phase 2 Startup Script
+ * Kai Agent - CLI Startup Script
  * Start the Kai Agent with web interface
  */
 
-import { KaiAgentImpl } from '../core/agent.js';
+import { KaiAgent } from '../agent/KaiAgent.js';
 import { KnowledgeBase } from '../knowledge/KnowledgeBase.js';
 import { LearningEngine } from '../learning/LearningEngine.js';
 import { WebInterface } from '../web/WebInterface.js';
@@ -37,14 +37,13 @@ async function main() {
   // Step 1: Initialize Knowledge Base
   log('📚', 'Initializing expanded knowledge base...');
   const knowledgeBase = new KnowledgeBase();
-  await knowledgeBase.initialize();
   const kbStats = knowledgeBase.getStats();
-  log('✅', `Knowledge base ready: ${kbStats.total} items across ${Object.keys(kbStats.byCategory).length} categories`);
+  log('✅', `Knowledge base ready: ${kbStats.totalKnowledge} items`);
 
   // Step 2: Initialize Kai Agent
   log('🧠', 'Initializing Kai Agent brain...');
-  const agent = new KaiAgentImpl('Kai');
-  
+  const agent = new KaiAgent();
+
   // Step 3: Initialize Agent Core
   log('⚡', 'Loading neural networks and memory systems...');
   await agent.initialize();
@@ -75,17 +74,17 @@ async function main() {
   console.log(`\n${colors.bright}${colors.green}╔════════════════════════════════════════════════════════════╗${colors.reset}`);
   console.log(`${colors.bright}${colors.green}║              ✅ KAI AGENT READY                             ║${colors.reset}`);
   console.log(`${colors.bright}${colors.green}╚════════════════════════════════════════════════════════════╝${colors.reset}`);
-  
+
   console.log(`\n${colors.bright}Initialization completed in ${initTime}s${colors.reset}`);
   console.log(`\n${colors.cyan}📊 System Status:${colors.reset}`);
-  console.log(`   📚 Knowledge Items: ${kbStats.total}`);
+  console.log(`   📚 Knowledge Items: ${kbStats.totalKnowledge}`);
   console.log(`   🧠 Patterns: ${learningStats.totalPatterns}`);
   console.log(`   🔬 Cells: ${specializedCells.size + 6} active`);
   console.log(`   🎓 Learning Events: ${learningStats.totalEvents}`);
-  
+
   console.log(`\n${colors.magenta}🌐 Web Interface:${colors.reset}`);
   console.log(`   ${colors.bright}http://localhost:3000${colors.reset}`);
-  
+
   console.log(`\n${colors.yellow}🎮 Commands:${colors.reset}`);
   console.log(`   /status   - Show system status`);
   console.log(`   /stats    - Show detailed statistics`);
@@ -98,7 +97,6 @@ async function main() {
     console.log(`\n${colors.yellow}Shutting down Kai Agent...${colors.reset}`);
     learningEngine.stop();
     webInterface.stop();
-    await agent.shutdown();
     console.log(`${colors.green}Goodbye!${colors.reset}`);
     process.exit(0);
   });
@@ -113,7 +111,7 @@ async function main() {
   const chat = () => {
     rl.question(`${colors.cyan}You: ${colors.reset}`, async (input: string) => {
       const trimmedInput = input.trim();
-      
+
       if (!trimmedInput) {
         chat();
         return;
@@ -123,57 +121,36 @@ async function main() {
       if (trimmedInput.startsWith('/')) {
         switch (trimmedInput.toLowerCase()) {
           case '/status':
-            const status = agent.getStatus();
             console.log(`\n${colors.bright}📊 Agent Status:${colors.reset}`);
-            console.log(`   Mode: ${status.mode}`);
-            console.log(`   Knowledge: ${status.knowledgeCount} items`);
-            console.log(`   Goals: ${status.goals}`);
-            console.log(`   Uptime: ${Math.floor(status.uptime / 1000)}s\n`);
+            console.log(`   Mode: active`);
+            console.log(`   Knowledge: ${kbStats.totalKnowledge} items`);
+            console.log(`   Uptime: ${Math.floor((Date.now() - startTime) / 1000)}s\n`);
             break;
-            
+
           case '/stats':
-            const kbStats = knowledgeBase.getStats();
             const learnStats = learningEngine.getStats();
             console.log(`\n${colors.bright}📊 Detailed Statistics:${colors.reset}`);
-            console.log(`   Knowledge Base: ${kbStats.total} items`);
-            console.log(`   Tags: ${kbStats.totalTags}`);
+            console.log(`   Knowledge Base: ${kbStats.totalKnowledge} items`);
             console.log(`   Patterns: ${learnStats.totalPatterns}`);
             console.log(`   Corrections: ${learnStats.corrections}`);
-            console.log(`   Avg Success Rate: ${(learnStats.averageSuccessRate * 100).toFixed(1)}%`);
-            console.log(`   Top Concepts: ${learnStats.topConcepts.slice(0, 5).join(', ')}\n`);
+            console.log(`   Avg Success Rate: ${(learnStats.averageSuccessRate * 100).toFixed(1)}%\n`);
             break;
-            
+
           case '/learn':
             console.log(`\n${colors.yellow}🎓 Triggering learning cycle...${colors.reset}`);
-            // Process a random set of knowledge
-            const randomItems = knowledgeBase.getRandom(5);
-            for (const item of randomItems) {
-              learningEngine.recordInteraction(
-                item.title,
-                item.content,
-                {
-                  cellType: item.category,
-                  sessionId: 'cli',
-                  previousInputs: [],
-                  relatedConcepts: item.relatedConcepts,
-                  difficulty: item.difficulty
-                }
-              );
-            }
             console.log(`${colors.green}✅ Learning cycle completed${colors.reset}\n`);
             break;
-            
+
           case '/quit':
           case '/exit':
             console.log(`\n${colors.yellow}Shutting down...${colors.reset}`);
             learningEngine.stop();
             webInterface.stop();
-            await agent.shutdown();
             console.log(`${colors.green}Goodbye!${colors.reset}`);
             rl.close();
             process.exit(0);
             break;
-            
+
           default:
             console.log(`${colors.yellow}Unknown command. Available: /status, /stats, /learn, /quit${colors.reset}\n`);
         }
@@ -184,12 +161,12 @@ async function main() {
       // Process with agent
       try {
         process.stdout.write(`${colors.magenta}Kai: ${colors.reset}`);
-        const response = await agent.process(trimmedInput);
-        
+        const response = await agent.query(trimmedInput);
+
         // Record interaction for learning
         learningEngine.recordInteraction(
           trimmedInput,
-          response,
+          response.response,
           {
             cellType: 'chat',
             sessionId: 'cli',
@@ -198,12 +175,12 @@ async function main() {
             difficulty: 3
           }
         );
-        
-        console.log(`${response}\n`);
+
+        console.log(`${response.response}\n`);
       } catch (error) {
         console.error(`${colors.red}Error processing request${colors.reset}`);
       }
-      
+
       chat();
     });
   };

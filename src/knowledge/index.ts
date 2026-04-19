@@ -1,5 +1,7 @@
 /**
- * Knowledge Module Index
+ * Knowledge Module Exports
  */
 
-export * from './ingestion';
+export { KnowledgeBase } from './base.js';
+export type { KnowledgeItem, KnowledgeStats } from './base.js';
+export { KnowledgeBase as KnowledgeBaseAlias } from './KnowledgeBase.js';

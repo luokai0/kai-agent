@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 /**
- * Kai Agent - Phase 2 Startup Script
+ * Kai Agent - CLI Startup Script
  * Start the Kai Agent with web interface
  */
 export {};

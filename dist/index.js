@@ -1,49 +1,33 @@
 "use strict";
-// =============================================================================
-// KAI AGENT - MAIN ENTRY POINT (Phase 3)
-// =============================================================================
+/**
+ * Kai Agent - Main Exports
+ */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.MultimodalManager = exports.ModalityFusionEngine = exports.CodeProcessor = exports.AudioProcessor = exports.ImageProcessor = exports.TextProcessor = exports.RealTimeLearningEngine = exports.AdaptiveRuleEngine = exports.LearningEventBuffer = exports.DistributedCellNetwork = exports.LoadBalancer = exports.MessageRouter = exports.NetworkTopologyManager = exports.SelfImprovementEngine = exports.CodeOptimizer = exports.MetaLearner = exports.PerformanceMonitor = exports.CellFactory = exports.DatabaseCell = exports.DevOpsCell = exports.TestingCell = exports.AlgorithmCell = exports.SecurityCell = exports.WebInterface = exports.LearningEngine = exports.KnowledgeBase = exports.KaiAgent = void 0;
+exports.MemoryBrain = exports.NeuralEngine = exports.NeuralReasoningEngine = exports.SECURITY_DATASETS = exports.CODING_DATASETS = exports.HuggingFaceIngestor = exports.VectorStore = exports.codeEmbeddingEngine = exports.highQualityEmbeddingEngine = exports.defaultEmbeddingEngine = exports.RealEmbeddingEngine = exports.KaiAgent = void 0;
 // Core Agent
-var agent_1 = require("./core/agent");
-Object.defineProperty(exports, "KaiAgent", { enumerable: true, get: function () { return agent_1.KaiAgentImpl; } });
-var KnowledgeBase_1 = require("./knowledge/KnowledgeBase");
-Object.defineProperty(exports, "KnowledgeBase", { enumerable: true, get: function () { return KnowledgeBase_1.KnowledgeBase; } });
-var LearningEngine_1 = require("./learning/LearningEngine");
-Object.defineProperty(exports, "LearningEngine", { enumerable: true, get: function () { return LearningEngine_1.LearningEngine; } });
-var WebInterface_1 = require("./web/WebInterface");
-Object.defineProperty(exports, "WebInterface", { enumerable: true, get: function () { return WebInterface_1.WebInterface; } });
-// Specialized Cells
-var SpecializedCells_1 = require("./cells/SpecializedCells");
-Object.defineProperty(exports, "SecurityCell", { enumerable: true, get: function () { return SpecializedCells_1.SecurityCell; } });
-Object.defineProperty(exports, "AlgorithmCell", { enumerable: true, get: function () { return SpecializedCells_1.AlgorithmCell; } });
-Object.defineProperty(exports, "TestingCell", { enumerable: true, get: function () { return SpecializedCells_1.TestingCell; } });
-Object.defineProperty(exports, "DevOpsCell", { enumerable: true, get: function () { return SpecializedCells_1.DevOpsCell; } });
-Object.defineProperty(exports, "DatabaseCell", { enumerable: true, get: function () { return SpecializedCells_1.DatabaseCell; } });
-Object.defineProperty(exports, "CellFactory", { enumerable: true, get: function () { return SpecializedCells_1.CellFactory; } });
-// Phase 3: Self-Improvement
-var SelfImprovement_1 = require("./self-improvement/SelfImprovement");
-Object.defineProperty(exports, "PerformanceMonitor", { enumerable: true, get: function () { return SelfImprovement_1.PerformanceMonitor; } });
-Object.defineProperty(exports, "MetaLearner", { enumerable: true, get: function () { return SelfImprovement_1.MetaLearner; } });
-Object.defineProperty(exports, "CodeOptimizer", { enumerable: true, get: function () { return SelfImprovement_1.CodeOptimizer; } });
-Object.defineProperty(exports, "SelfImprovementEngine", { enumerable: true, get: function () { return SelfImprovement_1.SelfImprovementEngine; } });
-// Phase 3: Distributed Network
-var DistributedNetwork_1 = require("./distributed/DistributedNetwork");
-Object.defineProperty(exports, "NetworkTopologyManager", { enumerable: true, get: function () { return DistributedNetwork_1.NetworkTopologyManager; } });
-Object.defineProperty(exports, "MessageRouter", { enumerable: true, get: function () { return DistributedNetwork_1.MessageRouter; } });
-Object.defineProperty(exports, "LoadBalancer", { enumerable: true, get: function () { return DistributedNetwork_1.LoadBalancer; } });
-Object.defineProperty(exports, "DistributedCellNetwork", { enumerable: true, get: function () { return DistributedNetwork_1.DistributedCellNetwork; } });
-// Phase 3: Real-Time Learning
-var RealTimeLearning_1 = require("./learning/RealTimeLearning");
-Object.defineProperty(exports, "LearningEventBuffer", { enumerable: true, get: function () { return RealTimeLearning_1.LearningEventBuffer; } });
-Object.defineProperty(exports, "AdaptiveRuleEngine", { enumerable: true, get: function () { return RealTimeLearning_1.AdaptiveRuleEngine; } });
-Object.defineProperty(exports, "RealTimeLearningEngine", { enumerable: true, get: function () { return RealTimeLearning_1.RealTimeLearningEngine; } });
-// Phase 3: Multi-Modal Support
-var MultimodalSupport_1 = require("./multimodal/MultimodalSupport");
-Object.defineProperty(exports, "TextProcessor", { enumerable: true, get: function () { return MultimodalSupport_1.TextProcessor; } });
-Object.defineProperty(exports, "ImageProcessor", { enumerable: true, get: function () { return MultimodalSupport_1.ImageProcessor; } });
-Object.defineProperty(exports, "AudioProcessor", { enumerable: true, get: function () { return MultimodalSupport_1.AudioProcessor; } });
-Object.defineProperty(exports, "CodeProcessor", { enumerable: true, get: function () { return MultimodalSupport_1.CodeProcessor; } });
-Object.defineProperty(exports, "ModalityFusionEngine", { enumerable: true, get: function () { return MultimodalSupport_1.ModalityFusionEngine; } });
-Object.defineProperty(exports, "MultimodalManager", { enumerable: true, get: function () { return MultimodalSupport_1.MultimodalManager; } });
+var KaiAgent_js_1 = require("./agent/KaiAgent.js");
+Object.defineProperty(exports, "KaiAgent", { enumerable: true, get: function () { return KaiAgent_js_1.KaiAgent; } });
+// Real Embeddings
+var RealEmbeddingEngine_js_1 = require("./embeddings/RealEmbeddingEngine.js");
+Object.defineProperty(exports, "RealEmbeddingEngine", { enumerable: true, get: function () { return RealEmbeddingEngine_js_1.RealEmbeddingEngine; } });
+Object.defineProperty(exports, "defaultEmbeddingEngine", { enumerable: true, get: function () { return RealEmbeddingEngine_js_1.defaultEmbeddingEngine; } });
+Object.defineProperty(exports, "highQualityEmbeddingEngine", { enumerable: true, get: function () { return RealEmbeddingEngine_js_1.highQualityEmbeddingEngine; } });
+Object.defineProperty(exports, "codeEmbeddingEngine", { enumerable: true, get: function () { return RealEmbeddingEngine_js_1.codeEmbeddingEngine; } });
+// Vector Store
+var VectorStore_js_1 = require("./retrieval/VectorStore.js");
+Object.defineProperty(exports, "VectorStore", { enumerable: true, get: function () { return VectorStore_js_1.VectorStore; } });
+// HuggingFace Ingestion
+var HuggingFaceIngestor_js_1 = require("./ingestion/HuggingFaceIngestor.js");
+Object.defineProperty(exports, "HuggingFaceIngestor", { enumerable: true, get: function () { return HuggingFaceIngestor_js_1.HuggingFaceIngestor; } });
+Object.defineProperty(exports, "CODING_DATASETS", { enumerable: true, get: function () { return HuggingFaceIngestor_js_1.CODING_DATASETS; } });
+Object.defineProperty(exports, "SECURITY_DATASETS", { enumerable: true, get: function () { return HuggingFaceIngestor_js_1.SECURITY_DATASETS; } });
+// Neural Reasoning
+var NeuralReasoningEngine_js_1 = require("./thoughts/NeuralReasoningEngine.js");
+Object.defineProperty(exports, "NeuralReasoningEngine", { enumerable: true, get: function () { return NeuralReasoningEngine_js_1.NeuralReasoningEngine; } });
+// Neural Engine
+var NeuralEngine_js_1 = require("./neural/NeuralEngine.js");
+Object.defineProperty(exports, "NeuralEngine", { enumerable: true, get: function () { return NeuralEngine_js_1.NeuralEngine; } });
+// Memory System
+var MemoryBrain_js_1 = require("./memory/MemoryBrain.js");
+Object.defineProperty(exports, "MemoryBrain", { enumerable: true, get: function () { return MemoryBrain_js_1.MemoryBrain; } });
 //# sourceMappingURL=index.js.map

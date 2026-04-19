@@ -1,5 +1,8 @@
+/**
+ * Memory Module Exports
+ */
+export { MemoryBrain } from './MemoryBrain.js';
+export { MemorySystemImpl } from './system.js';
+export { EmbeddingEngine, VectorIndexImpl } from './embedding.js';
 export * from './vector.js';
-export * from './embedding.js';
-export * from './bank.js';
-export * from './system.js';
 //# sourceMappingURL=index.d.ts.map

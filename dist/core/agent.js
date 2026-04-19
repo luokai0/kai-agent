@@ -16,6 +16,8 @@ const embedding_js_1 = require("../memory/embedding.js");
 const SelfImprovementEngine_js_1 = require("../self-improvement/SelfImprovementEngine.js");
 const SelfLearningTrainer_js_1 = require("../self-improvement/SelfLearningTrainer.js");
 const ConversationEngine_js_1 = require("../conversation/ConversationEngine.js");
+// NEW: Import tool system from Claude Code architecture
+const index_js_1 = require("../tools/index.js");
 const VERSION = '1.0.0';
 const EMBEDDING_DIM = 768;
 class KaiAgentImpl {
@@ -41,6 +43,10 @@ class KaiAgentImpl {
     trainer;
     // Conversation engine
     conversation;
+    // NEW: Tool system components
+    tools;
+    permissionChecker;
+    queryEngine = null;
     constructor(name = 'Kai') {
         this.id = (0, uuid_1.v4)();
         this.name = name;
@@ -78,6 +84,15 @@ class KaiAgentImpl {
         this.selfImprovement = new SelfImprovementEngine_js_1.SelfImprovementEngine(process.cwd(), `${process.cwd()}/data/self-improvement`);
         // Initialize trainer (will connect to neural engine after initialization)
         this.trainer = new SelfLearningTrainer_js_1.SelfLearningTrainer(this.selfImprovement, undefined, undefined, `${process.cwd()}/data/training`);
+        // NEW: Initialize tool system
+        this.tools = (0, index_js_1.getTools)();
+        this.permissionChecker = (0, index_js_1.createPermissionChecker)({
+            mode: 'default',
+            allowRules: index_js_1.DEFAULT_ALLOW_RULES,
+            denyRules: index_js_1.DEFAULT_DENY_RULES,
+            askRules: [],
+            decisions: new Map(),
+        });
         // Conversation engine will be initialized in initialize() method
     }
     initializeBrain() {

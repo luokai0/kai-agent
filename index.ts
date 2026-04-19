@@ -1,37 +1,34 @@
 /**
- * Kai Agent - Phase 4
- * Advanced Neural AI Brain
+ * Kai Agent - Neural AI Brain
+ * Main export module
  */
 
-// Core components
-export * from './src/agent';
-export * from './src/agent-phase4';
+// Core Agent
+export { KaiAgentPhase4 } from './src/agent-phase4.js';
+export type { AgentConfig, AgentResponse } from './src/agent-phase4.js';
 
-// Neural networks
-export * from './src/neural';
-export * from './src/neural/matrix';
-export * from './src/neural/network';
-export * from './src/neural/attention/multihead';
-export * from './src/neural/transformer/encoder';
-export * from './src/neural/lstm/lstm';
-export * from './src/neural/gru/gru';
-export * from './src/neural/convolutional/conv';
+// Knowledge
+export { KnowledgeBase } from './src/knowledge/base.js';
 
-// Memory and reasoning
-export * from './src/memory/brain';
-export * from './src/thoughts/engine';
-export * from './src/cells/system';
-export * from './src/cells/knowledge-cell';
-export * from './src/cells/coder-cell';
-export * from './src/cells/security-cell';
+// Memory
+export { MemoryBrain } from './src/memory/MemoryBrain.js';
+export { MemorySystemImpl } from './src/memory/system.js';
+export { EmbeddingEngine } from './src/memory/embedding.js';
 
-// Phase 4 modules
-export * from './src/personality';
-export * from './src/plugins';
-export * from './src/security';
-export * from './src/performance';
-export * from './src/knowledge';
+// Neural
+export { NeuralNetwork, DenseLayer, ReLULayer, TensorOps } from './src/neural/layers.js';
+export { MultiHeadAttention } from './src/neural/attention/multihead.js';
 
-// Default export
-import { KaiAgentPhase4 } from './src/agent-phase4';
-export default KaiAgentPhase4;
+// Thoughts
+export { ReasoningEngineImpl } from './src/thoughts/reasoning.js';
+export { ThoughtTreeImpl, ThoughtImpl } from './src/thoughts/tree.js';
+
+// Cells
+export { CellImpl } from './src/cells/cell.js';
+export { CodingCell, SecurityCell } from './src/cells/SpecializedCells.js';
+
+// Self-Improvement
+export { SelfImprovementEngine } from './src/self-improvement/SelfImprovementEngine.js';
+
+// CLI
+export { default as start } from './start.js';

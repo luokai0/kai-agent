@@ -1,21 +1,5 @@
-export declare function generateId(): string;
-export declare function sleep(ms: number): Promise<void>;
-export declare function clamp(value: number, min: number, max: number): number;
-export declare function lerp(a: number, b: number, t: number): number;
-export declare function randomRange(min: number, max: number): number;
-export declare function randomInt(min: number, max: number): number;
-export declare function shuffle<T>(array: T[]): T[];
-export declare function chunk<T>(array: T[], size: number): T[][];
-export declare function unique<T>(array: T[]): T[];
-export declare function flatten<T>(arrays: T[][]): T[];
-export declare function groupBy<T, K extends string | number>(array: T[], keyFn: (item: T) => K): Record<K, T[]>;
-export declare function sortBy<T>(array: T[], keyFn: (item: T) => number, descending?: boolean): T[];
-export declare function debounce<T extends (...args: unknown[]) => unknown>(fn: T, delay: number): T;
-export declare function throttle<T extends (...args: unknown[]) => unknown>(fn: T, limit: number): T;
-export declare function memoize<T extends (...args: unknown[]) => unknown>(fn: T): T;
-export declare function formatBytes(bytes: number): string;
-export declare function formatTime(ms: number): string;
-export declare function formatDate(timestamp: number): string;
-export declare function parseJson<T>(json: string, fallback: T): T;
-export declare function safeAccess<T>(obj: unknown, path: string, fallback: T): T;
+/**
+ * Utils Module Exports
+ */
+export { Shell } from './Shell.js';
 //# sourceMappingURL=index.d.ts.map

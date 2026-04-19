@@ -27,6 +27,9 @@ export declare class KaiAgentImpl implements KaiAgent {
     private selfImprovement;
     private trainer;
     private conversation;
+    private tools;
+    private permissionChecker;
+    private queryEngine;
     constructor(name?: string);
     private initializeBrain;
     initialize(): Promise<void>;

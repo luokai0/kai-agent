@@ -1,1 +1,1 @@
-{"version":3,"file":"index.d.ts","sourceRoot":"","sources":["../../src/neural/index.ts"],"names":[],"mappings":"AAIA,cAAc,kBAAkB,CAAC;AACjC,cAAc,WAAW,CAAC;AAC1B,cAAc,iBAAiB,CAAC;AAChC,cAAc,aAAa,CAAC;AAC5B,cAAc,YAAY,CAAC;AAC3B,cAAc,cAAc,CAAC"}
+{"version":3,"file":"index.d.ts","sourceRoot":"","sources":["../../src/neural/index.ts"],"names":[],"mappings":"AAAA;;;GAGG;AAEH,cAAc,UAAU,CAAC;AACzB,cAAc,uBAAuB,CAAC;AACtC,cAAc,uBAAuB,CAAC;AACtC,cAAc,aAAa,CAAC;AAC5B,cAAc,WAAW,CAAC;AAC1B,cAAc,sBAAsB,CAAC"}

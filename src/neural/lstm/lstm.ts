@@ -274,7 +274,7 @@ export class LSTMCell {
   /**
    * Set weights from serialization
    */
-  setWeights(weights: ReturnType<LSTMCell['getWeights']>): void {
+  setWeights(weights: ReturnType<LSTMCellGetWeights>): void {
     this.Wf = weights.Wf; this.bf = weights.bf;
     this.Wi = weights.Wi; this.bi = weights.bi;
     this.Wc = weights.Wc; this.bc = weights.bc;
@@ -403,7 +403,7 @@ export class StackedLSTM {
   /**
    * Set weights for all layers
    */
-  setWeights(weights: ReturnType<LSTMCell['getWeights']>[]): void {
+  setWeights(weights: ReturnType<LSTMCellGetWeights>[]): void {
     weights.forEach((w, i) => {
       if (this.layers[i]) {
         this.layers[i].setWeights(w);

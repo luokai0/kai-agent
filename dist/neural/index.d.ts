@@ -1,7 +1,11 @@
-export * from './activations.js';
-export * from './loss.js';
-export * from './optimizers.js';
-export * from './neuron.js';
-export * from './layer.js';
-export * from './network.js';
+/**
+ * Neural Module Index
+ * Exports all neural network components
+ */
+export * from './matrix';
+export * from './attention/multihead';
+export * from './transformer/encoder';
+export * from './lstm/lstm';
+export * from './gru/gru';
+export * from './convolutional/conv';
 //# sourceMappingURL=index.d.ts.map
