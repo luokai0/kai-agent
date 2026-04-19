@@ -33,6 +33,20 @@ import {
   ConversationSession,
   ConversationMessage
 } from '../conversation/ConversationEngine.js';
+// NEW: Import tool system from Claude Code architecture
+import { 
+  getTools, 
+  type Tools, 
+  type Tool,
+  type ToolUseContext,
+  type PermissionResult,
+  type CanUseToolFn,
+  createPermissionChecker,
+  DEFAULT_ALLOW_RULES,
+  DEFAULT_DENY_RULES,
+} from '../tools/index.js';
+// NEW: Import Query Engine
+import { QueryEngine, type SDKMessage, type ContentBlock } from '../query/QueryEngine.js';
 
 const VERSION = '1.0.0';
 const EMBEDDING_DIM = 768;
@@ -63,6 +77,11 @@ export class KaiAgentImpl implements KaiAgent {
   
   // Conversation engine
   private conversation!: ConversationEngine;
+  
+  // NEW: Tool system components
+  private tools: Tools;
+  private permissionChecker: ReturnType<typeof createPermissionChecker>;
+  private queryEngine: QueryEngine | null = null;
 
   constructor(name: string = 'Kai') {
     this.id = uuidv4();
@@ -120,6 +139,16 @@ export class KaiAgentImpl implements KaiAgent {
       undefined,
       `${process.cwd()}/data/training`
     );
+    
+    // NEW: Initialize tool system
+    this.tools = getTools();
+    this.permissionChecker = createPermissionChecker({
+      mode: 'default',
+      allowRules: DEFAULT_ALLOW_RULES,
+      denyRules: DEFAULT_DENY_RULES,
+      askRules: [],
+      decisions: new Map(),
+    });
     
     // Conversation engine will be initialized in initialize() method
   }
